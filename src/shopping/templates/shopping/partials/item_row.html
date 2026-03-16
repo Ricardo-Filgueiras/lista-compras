@@ -1,0 +1,32 @@
+<div class="item-row {% if item.is_purchased %}item-purchased{% endif %}" id="item-{{ item.uuid }}">
+  <!-- Toggle comprado -->
+  <form
+    method="post"
+    action="{% url 'shopping:item_toggle' list.uuid item.uuid %}"
+    hx-post="{% url 'shopping:item_toggle' list.uuid item.uuid %}"
+    hx-swap="none"
+    class="toggle-form"
+  >
+    {% csrf_token %}
+    <button type="submit" class="item-checkbox {% if item.is_purchased %}checked{% endif %}" title="Marcar/desmarcar">
+      {% if item.is_purchased %}✓{% else %}&nbsp;{% endif %}
+    </button>
+  </form>
+
+  <!-- Dados do item -->
+  <div class="item-info">
+    <span class="item-name">{{ item.name }}</span>
+    <span class="item-meta">{{ item.quantity_value|floatformat:"-3" }} {{ item.get_unit_display }} · R$ {{ item.price|floatformat:2 }} un.</span>
+  </div>
+
+  <!-- Total do item -->
+  <div class="item-total">R$ {{ item.total_price|floatformat:2 }}</div>
+
+  <!-- Ações -->
+  {% if can_edit %}
+  <div class="item-actions">
+    <a href="{% url 'shopping:item_edit' list.uuid item.uuid %}" class="btn btn-ghost btn-xs" id="edit-{{ item.uuid }}">✏️</a>
+    <a href="{% url 'shopping:item_delete' list.uuid item.uuid %}" class="btn btn-danger btn-xs" id="del-{{ item.uuid }}">🗑️</a>
+  </div>
+  {% endif %}
+</div>

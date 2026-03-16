@@ -1,0 +1,52 @@
+{% extends 'shopping/base.html' %}
+{% block title %}Compartilhar · {{ list.name }}{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <div class="form-card">
+    <div class="form-card-header">
+      <a href="{% url 'shopping:list_detail' list.uuid %}" class="back-link">← Voltar</a>
+      <h1>Compartilhar lista</h1>
+      <p class="form-subtitle">{{ list.name }}</p>
+    </div>
+
+    <form method="post" class="form-body">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group {% if field.field_type == 'checkbox' %}form-group-check{% endif %}">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+        <ul class="form-errors">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <div class="form-actions">
+        <button type="submit" class="btn btn-primary" id="btn-compartilhar-lista">Compartilhar</button>
+      </div>
+    </form>
+
+    {% if shares %}
+    <div class="shares-list">
+      <h3 class="shares-title">Compartilhado com:</h3>
+      {% for share in shares %}
+      <div class="share-row">
+        <div class="share-info">
+          <span class="share-user">{{ share.shared_with.username }}</span>
+          {% if share.can_edit %}
+          <span class="badge badge-edit">pode editar</span>
+          {% else %}
+          <span class="badge badge-view">somente leitura</span>
+          {% endif %}
+        </div>
+        <form method="post" action="{% url 'shopping:share_remove' list.uuid share.id %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-danger btn-xs" id="remove-share-{{ share.id }}">Remover</button>
+        </form>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

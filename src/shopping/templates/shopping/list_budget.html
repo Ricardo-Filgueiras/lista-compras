@@ -1,0 +1,30 @@
+{% extends 'shopping/base.html' %}
+{% block title %}Orçamento · {{ list.name }}{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <div class="form-card">
+    <div class="form-card-header">
+      <a href="{% url 'shopping:list_detail' list.uuid %}" class="back-link">← Voltar</a>
+      <h1>💰 Orçamento da lista</h1>
+      <p class="form-subtitle">{{ list.name }}</p>
+    </div>
+    <form method="post" class="form-body">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+        <ul class="form-errors">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <div class="form-actions">
+        <a href="{% url 'shopping:list_detail' list.uuid %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary" id="btn-salvar-orcamento">Salvar orçamento</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

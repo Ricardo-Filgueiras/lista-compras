@@ -1,0 +1,102 @@
+{% extends 'shopping/base.html' %}
+{% block title %}Minhas Listas · Lista de Compras{% endblock %}
+
+{% block content %}
+<div class="page-header">
+  <div class="page-header-content">
+    <h1 class="page-title">Minhas Listas</h1>
+    <p class="page-subtitle">Organize suas compras em listas separadas</p>
+  </div>
+  <button class="btn btn-primary" id="btn-nova-lista" onclick="toggleModal('modal-nova-lista')">
+    + Nova Lista
+  </button>
+</div>
+
+<!-- Modal Nova Lista -->
+<div id="modal-nova-lista" class="modal-overlay hidden">
+  <div class="modal">
+    <div class="modal-header">
+      <h2>Nova Lista</h2>
+      <button onclick="toggleModal('modal-nova-lista')" class="modal-close">×</button>
+    </div>
+    <form method="post" class="modal-form">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+        <ul class="form-errors">
+          {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+        </ul>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <div class="modal-actions">
+        <button type="button" onclick="toggleModal('modal-nova-lista')" class="btn btn-ghost">Cancelar</button>
+        <button type="submit" class="btn btn-primary" id="btn-criar-lista">Criar Lista</button>
+      </div>
+    </form>
+  </div>
+</div>
+
+<!-- Listas Próprias -->
+<section class="lists-section">
+  <h2 class="section-title">Minhas listas ({{ own_lists.count }})</h2>
+  {% if own_lists %}
+  <div class="lists-grid">
+    {% for lst in own_lists %}
+    <a href="{% url 'shopping:list_detail' lst.uuid %}" class="list-card" id="list-{{ lst.uuid }}">
+      <div class="list-card-icon">🛒</div>
+      <div class="list-card-body">
+        <h3 class="list-card-title">{{ lst.name }}</h3>
+        <span class="list-card-count">{{ lst.items.count }} iten{% if lst.items.count != 1 %}s{% endif %}</span>
+        {% if lst.budget %}
+        <span class="list-card-budget">Orç: R$ {{ lst.budget }}</span>
+        {% endif %}
+      </div>
+      <div class="list-card-arrow">→</div>
+    </a>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="empty-state">
+    <div class="empty-icon">📋</div>
+    <p>Você ainda não tem listas. Crie uma acima!</p>
+  </div>
+  {% endif %}
+</section>
+
+<!-- Listas Compartilhadas -->
+{% if shared_lists %}
+<section class="lists-section">
+  <h2 class="section-title">Compartilhadas comigo ({{ shared_lists.count }})</h2>
+  <div class="lists-grid">
+    {% for lst in shared_lists %}
+    <a href="{% url 'shopping:list_detail' lst.uuid %}" class="list-card list-card-shared" id="shared-{{ lst.uuid }}">
+      <div class="list-card-icon">🤝</div>
+      <div class="list-card-body">
+        <h3 class="list-card-title">{{ lst.name }}</h3>
+        <span class="list-card-owner">por {{ lst.user.username }}</span>
+        <span class="list-card-count">{{ lst.items.count }} iten{% if lst.items.count != 1 %}s{% endif %}</span>
+      </div>
+      <div class="list-card-arrow">→</div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endif %}
+
+<script>
+function toggleModal(id) {
+  const modal = document.getElementById(id);
+  modal.classList.toggle('hidden');
+}
+// Fechar modal clicando fora
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+  overlay.addEventListener('click', function(e) {
+    if (e.target === this) this.classList.add('hidden');
+  });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Lista de Compras{% endblock %}</title>
+  <meta name="description" content="Gerencie suas listas de compras de forma inteligente e colaborativa." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  {% load static %}
+  <link rel="stylesheet" href="{% static 'shopping/css/style.css' %}" />
+</head>
+<body>
+  <nav class="navbar">
+    <div class="nav-container">
+      <a href="{% url 'shopping:index' %}" class="nav-brand">
+        <span class="nav-icon">🛒</span>
+        <span>Lista de Compras</span>
+      </a>
+      {% if user.is_authenticated %}
+      <div class="nav-user">
+        <span class="nav-greeting">Olá, <strong>{{ user.username }}</strong></span>
+        <form method="post" action="{% url 'logout' %}">
+          {% csrf_token %}
+          <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
+        </form>
+      </div>
+      {% endif %}
+    </div>
+  </nav>
+
+  <main class="main-content">
+    {% if messages %}
+    <div class="messages-container">
+      {% for msg in messages %}
+      <div class="alert alert-{{ msg.tags }}">
+        <span>{{ msg }}</span>
+        <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+      </div>
+      {% endfor %}
+    </div>
+    {% endif %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="footer">
+    <p>Lista de Compras &copy; 2025 · Feito com Django</p>
+  </footer>
+</body>
+</html>

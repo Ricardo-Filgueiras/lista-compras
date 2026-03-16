@@ -1,0 +1,22 @@
+{% extends 'shopping/base.html' %}
+{% block title %}Excluir Lista · Lista de Compras{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <div class="form-card form-card-danger">
+    <div class="form-card-header">
+      <div class="danger-icon">⚠️</div>
+      <h1>Excluir lista</h1>
+      <p class="form-subtitle">Tem certeza que deseja excluir <strong>{{ list.name }}</strong>?</p>
+      <p class="danger-note">Todos os itens e compartilhamentos serão removidos permanentemente.</p>
+    </div>
+    <form method="post" class="form-body">
+      {% csrf_token %}
+      <div class="form-actions">
+        <a href="{% url 'shopping:list_detail' list.uuid %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-danger" id="btn-confirmar-excluir">Sim, excluir</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,122 @@
+{% extends 'shopping/base.html' %}
+{% block title %}{{ list.name }} · Lista de Compras{% endblock %}
+
+{% block content %}
+<div class="detail-page">
+
+  <!-- Cabeçalho da lista -->
+  <div class="detail-header">
+    <div class="detail-header-left">
+      <a href="{% url 'shopping:index' %}" class="back-link">← Voltar</a>
+      <h1 class="detail-title">{{ list.name }}</h1>
+      {% if not is_owner %}
+      <span class="badge badge-shared">Compartilhada por {{ list.user.username }}</span>
+      {% endif %}
+    </div>
+    {% if is_owner %}
+    <div class="detail-actions">
+      <a href="{% url 'shopping:list_edit' list.uuid %}" class="btn btn-ghost btn-sm" id="btn-editar-lista">Editar</a>
+      <a href="{% url 'shopping:list_share' list.uuid %}" class="btn btn-ghost btn-sm" id="btn-compartilhar">🤝 Compartilhar</a>
+      <a href="{% url 'shopping:list_budget' list.uuid %}" class="btn btn-ghost btn-sm" id="btn-orcamento">💰 Orçamento</a>
+      <a href="{% url 'shopping:list_delete' list.uuid %}" class="btn btn-danger btn-sm" id="btn-excluir-lista">Excluir</a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Cards de resumo financeiro -->
+  <div class="summary-cards">
+    <div class="summary-card summary-pending">
+      <div class="summary-label">Pendente</div>
+      <div class="summary-value">R$ {{ total_pending|floatformat:2 }}</div>
+    </div>
+    <div class="summary-card summary-bought">
+      <div class="summary-label">Comprado</div>
+      <div class="summary-value">R$ {{ total_bought|floatformat:2 }}</div>
+    </div>
+    <div class="summary-card summary-total">
+      <div class="summary-label">Total</div>
+      <div class="summary-value">R$ {{ total_all|floatformat:2 }}</div>
+    </div>
+    {% if budget %}
+    <div class="summary-card {% if balance >= 0 %}summary-ok{% else %}summary-over{% endif %}">
+      <div class="summary-label">Saldo (orç: R$ {{ budget|floatformat:2 }})</div>
+      <div class="summary-value">R$ {{ balance|floatformat:2 }}</div>
+      {% if budget %}
+      <div class="budget-bar">
+        {% widthratio total_all budget 100 as pct %}
+        <div class="budget-fill {% if balance < 0 %}budget-over{% endif %}" style="width: {% if pct|add:0 > 100 %}100{% else %}{{ pct }}{% endif %}%"></div>
+      </div>
+      {% endif %}
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Formulário Adicionar Item -->
+  {% if can_edit %}
+  <div class="add-item-section">
+    <details class="add-item-details" {% if not pending_items and not bought_items %}open{% endif %}>
+      <summary class="add-item-summary" id="toggle-add-item">
+        <span>+ Adicionar item</span>
+      </summary>
+      <form method="post" action="{% url 'shopping:item_add' list.uuid %}" class="item-add-form">
+        {% csrf_token %}
+        <div class="item-form-grid">
+          <div class="form-group form-group-wide">
+            <label class="form-label" for="{{ item_form.name.id_for_label }}">Produto</label>
+            {{ item_form.name }}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="{{ item_form.quantity_value.id_for_label }}">Qtd</label>
+            {{ item_form.quantity_value }}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="{{ item_form.unit.id_for_label }}">Un.</label>
+            {{ item_form.unit }}
+          </div>
+          <div class="form-group">
+            <label class="form-label" for="{{ item_form.price.id_for_label }}">Preço R$</label>
+            {{ item_form.price }}
+          </div>
+          <div class="form-group form-group-action">
+            <button type="submit" class="btn btn-primary" id="btn-adicionar-item">Adicionar</button>
+          </div>
+        </div>
+      </form>
+    </details>
+  </div>
+  {% endif %}
+
+  <!-- Itens Pendentes -->
+  <section class="items-section">
+    <h2 class="section-title">
+      Pendentes
+      <span class="badge badge-count">{{ pending_items.count }}</span>
+    </h2>
+    {% if pending_items %}
+    <div class="items-list">
+      {% for item in pending_items %}
+      {% include 'shopping/partials/item_row.html' with item=item list=list can_edit=can_edit %}
+      {% endfor %}
+    </div>
+    {% else %}
+    <p class="empty-msg">Nenhum item pendente 🎉</p>
+    {% endif %}
+  </section>
+
+  <!-- Itens Comprados -->
+  {% if bought_items %}
+  <section class="items-section">
+    <h2 class="section-title section-bought">
+      Comprados
+      <span class="badge badge-count badge-success">{{ bought_items.count }}</span>
+    </h2>
+    <div class="items-list items-list-bought">
+      {% for item in bought_items %}
+      {% include 'shopping/partials/item_row.html' with item=item list=list can_edit=can_edit %}
+      {% endfor %}
+    </div>
+  </section>
+  {% endif %}
+
+</div>
+{% endblock %}

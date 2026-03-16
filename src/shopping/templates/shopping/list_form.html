@@ -1,0 +1,29 @@
+{% extends 'shopping/base.html' %}
+{% block title %}{{ action }} Lista · Lista de Compras{% endblock %}
+
+{% block content %}
+<div class="form-page">
+  <div class="form-card">
+    <div class="form-card-header">
+      <a href="{% url 'shopping:index' %}" class="back-link">← Voltar</a>
+      <h1>{{ action }} Lista</h1>
+    </div>
+    <form method="post" class="form-body">
+      {% csrf_token %}
+      {% for field in form %}
+      <div class="form-group">
+        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+        {{ field }}
+        {% if field.errors %}
+        <ul class="form-errors">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        {% endif %}
+      </div>
+      {% endfor %}
+      <div class="form-actions">
+        <a href="{% url 'shopping:index' %}" class="btn btn-ghost">Cancelar</a>
+        <button type="submit" class="btn btn-primary" id="btn-salvar-lista">Salvar</button>
+      </div>
+    </form>
+  </div>
+</div>
+{% endblock %}
