@@ -54,6 +54,13 @@ def _calc_totals(shopping_list):
 # ────────────────────────── list views ───────────────────────────
 
 
+def home(request):
+    """Página de destino (Landing Page) para usuários não logados."""
+    if request.user.is_authenticated:
+        return redirect('shopping:index')
+    return render(request, 'shopping/home.html')
+
+
 @login_required
 def index(request):
     """Página principal: exibe todas as listas do usuário (próprias + compartilhadas)."""
@@ -321,6 +328,41 @@ def list_join(request, uuid):
         messages.success(request, f'Você agora é um editor da lista: {shopping_list.name}')
     
     return redirect('shopping:list_detail', uuid=uuid)
+
+
+@login_required
+def list_clone(request, uuid):
+    """Exibe confirmação e cria uma cópia privada (template) de uma lista existente."""
+    original_list = get_object_or_404(ShoppingList, uuid=uuid)
+    
+    if request.method == 'POST':
+        # Cria a nova lista
+        new_list = ShoppingList.objects.create(
+            user=request.user,
+            name=f"{original_list.name} (Cópia)",
+            budget=original_list.budget
+        )
+        
+        # Copia todos os itens da lista original
+        items = original_list.items.all()
+        new_items = []
+        for item in items:
+            new_items.append(ShoppingItem(
+                shopping_list=new_list,
+                name=item.name,
+                quantity_value=item.quantity_value,
+                unit=item.unit,
+                price=item.price,
+                category=item.category,
+                is_purchased=False
+            ))
+        
+        ShoppingItem.objects.bulk_create(new_items)
+        
+        messages.success(request, f'Lista "{new_list.name}" criada com sucesso!')
+        return redirect('shopping:list_detail', uuid=new_list.uuid)
+
+    return render(request, 'shopping/list_clone_confirm.html', {'list': original_list})
 
 
 @login_required

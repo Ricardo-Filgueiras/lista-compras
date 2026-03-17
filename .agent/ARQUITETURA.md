@@ -1,77 +1,44 @@
-# Arquitetura do Webapp Lista de Compras
+# Arquitetura do Webapp Papelaria Criativa
 
-## Estrutura de Pastas
+## Estrutura de Pastas e Componentes
 
 ```
 lista-compras/
 ├── .agent/
-│   ├── COMPRAS.md          # Especificação do módulo
+│   ├── OBJETIVO-PROJETO.md  # Objetivo de Negócio
+│   ├── FUNCIONALIDADE.md   # Funcionalidades e UX
 │   └── ARQUITETURA.md      # Este arquivo
-├── .venv/                  # Ambiente virtual Python
-├── dotenv_files/
-│   └── .env                # Variáveis de ambiente
 ├── src/
-│   ├── manage.py
-│   ├── requirements.txt
-│   ├── core/               # Configurações do projeto Django
-│   │   ├── __init__.py
-│   │   ├── settings.py
-│   │   ├── urls.py
-│   │   ├── asgi.py
-│   │   └── wsgi.py
-│   └── shopping/           # App principal de compras
-│       ├── __init__.py
-│       ├── admin.py
-│       ├── apps.py
-│       ├── forms.py
-│       ├── models.py
-│       ├── urls.py
-│       ├── views.py
-│       ├── migrations/
-│       │   └── __init__.py
-│       └── templates/
-│           └── shopping/
-│               ├── base.html
-│               ├── login.html
-│               ├── register.html
-│               ├── list_index.html
-│               ├── list_detail.html
-│               ├── item_form.html
-│               └── partials/
-│                   └── item_row.html
-└── pyproject.toml
+│   ├── core/               # Configurações globais
+│   └── shopping/           # Módulo principal de compras
+│       ├── static/shopping/css/style.css # Design System (Slate Palette)
+│       └── templates/shopping/
+│           ├── home.html           # Landing Page
+│           ├── list_index.html     # Dashboard (Painel de Listas)
+│           ├── list_detail.html    # Detalhes da Lista (Carrinho)
+│           ├── list_clone_confirm.html # Confirmação de Template
+│           └── partials/
+│               ├── item_row.html      # Card Compacto do Item (HTMX)
+│               └── footer_summary.html # Sticky Footer Dinâmico (HTMX)
 ```
 
-## Modelos (Models)
+## Novas Rotas e Fluxos
 
-- `ShoppingList` — lista de compras de um usuário (uuid, name, user, budget, created_at, updated_at)
-- `ShoppingItem` — itens da lista (uuid, shopping_list, name, quantity_value, unit, price, is_purchased)
-- `ShoppingShare` — compartilhamento entre usuários (shopping_list, shared_with, shared_by, can_edit)
-- `MonthlyShoppingBudget` — orçamento mensal por usuário (user, period, amount)
+- `/` → Home (Landing Page)
+- `/compras/` → Index (Dashboard para usuários logados)
+- `/compras/<uuid>/` → Detalhes da lista
+- `/compras/<uuid>/entrar/` → Link para edição colaborativa (Auto-Join)
+- `/compras/<uuid>/usar-template/` → Link para clonar lista (Template)
+- `/compras/<uuid>/totais/` → View HTMX para atualização do resumo do footer
 
-## Fluxo de URL
+## Fluxos Dinâmicos com HTMX
 
-```
-/               → login (redirect para /compras/ se autenticado)
-/registrar/     → cadastro de usuário
-/logout/        → encerrar sessão
-/compras/       → lista de todas as listas do usuário
-/compras/<uuid>/         → detalhe de uma lista
-/compras/<uuid>/editar/  → editar lista
-/compras/<uuid>/excluir/ → excluir lista
-/compras/<uuid>/item/adicionar/         → adicionar item
-/compras/<uuid>/item/<uuid>/editar/     → editar item
-/compras/<uuid>/item/<uuid>/excluir/    → excluir item
-/compras/<uuid>/item/<uuid>/toggle/     → marcar/desmarcar item
-/compras/<uuid>/compartilhar/           → compartilhar lista
-/compras/<uuid>/budget/                 → definir orçamento da lista
-```
+O projeto utiliza HTMX para atualizações parciais de interface sem recarregamento:
+- **`update-totals` (Evento):** Disparado quando um item é alterado ou excluído. O footer escuta esse evento (`hx-trigger="update-totals from:body"`) e faz um `GET` para `/totais/` para atualizar os valores.
+- **`hx-headers`:** Utilizado para passar o `X-CSRFToken` em requisições `POST`, `PUT` ou `DELETE`.
 
-## Stack Técnica
+## Modelos de Dados (Django Models)
 
-- **Backend:** Django 6.x
-- **Banco de dados (dev):** SQLite3 (default para desenvolvimento local)
-- **Banco de dados (prod):** PostgreSQL (via env vars)
-- **Frontend:** HTML5 + CSS3 (vanilla) + HTMX para interações parciais
-- **Autenticação:** Django Auth nativo (login/logout/register)
-- **Segurança:** UUIDs nas URLs (anti-IDOR) + ownership check nas views
+- `ShoppingList`: Adicionado campo `is_locked` para controle de checkout.
+- `ShoppingItem`: Campo `category` para rotulação visual.
+- `ShoppingShare`: Relacionamento de compartilhamento entre usuários.

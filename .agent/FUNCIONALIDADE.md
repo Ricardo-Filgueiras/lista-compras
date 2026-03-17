@@ -1,35 +1,27 @@
-4. Funcionalidades Detalhadas
+# Funcionalidades Detalhadas - Papelaria Criativa
 
-O WebApp foi projetado para reduzir a fricção no momento da compra, oferecendo as seguintes funcionalidades:
+O WebApp foi projetado para oferecer uma experiência de "Aplicativo Nativo" no navegador, utilizando **HTMX** para interações fluidas.
 
-4.1 Gestão Dinâmica do Carrinho
+## 1. Gestão Dinâmica de Itens
+- **Controle de Quantidade (+/-):** Alteração instantânea da quantidade no card do produto com atualização do preço total e do resumo do pedido (via evento `update-totals`).
+- **Remoção Instantânea:** Botão de lixeira com confirmação para excluir itens sem recarregar a página.
+- **Destaque de Categoria:** Itens rotulados por categoria (ex: PAPÉIS, ESCRITA, CADERNOS).
 
-Ajuste de Quantidade: Controlo incremental (+/-) diretamente no card do produto com atualização de preço em tempo real.
+## 2. Fluxos de Compartilhamento
+- **Edição Colaborativa (`/entrar/`):** Link exclusivo para compartilhar com membros da família. Permite que múltiplos usuários editem a mesma lista de compras.
+- **Link de Template (`/usar-template/`):** Mecanismo de clonagem que permite a um cliente criar sua própria lista baseada em um modelo da papelaria. Inclui página de confirmação para evitar cópias acidentais.
 
-Remoção Rápida: Ícone de lixeira para exclusão imediata de itens indesejados.
+## 3. Checkout e Totais
+- **Sticky Footer (Resumo do Pedido):** Barra fixa na parte inferior da tela que acompanha o scroll, exibindo sempre o Valor Total.
+- **Cálculo de Desconto PIX:** Exibição automática do valor com 10% de desconto para pagamentos via PIX.
+- **Fechamento de Pedido:** Botão "CONCLUIR PEDIDO" que trava a edição da lista, garantindo a integridade dos dados para o setor de separação física da loja.
 
-Persistência Local: O estado do carrinho é mantido durante a navegação para evitar perda de dados.
+## 4. Gerenciamento do Painel (Dashboard)
+- **Grid de Listas:** Visualização elegante de todas as listas do usuário.
+- **Exclusão de Listas:** Ícone de lixeira diretamente no card da página inicial com confirmação visual.
+- **Diferenciação Visual:** Listas compartilhadas possuem bordas e ícones distintos das listas próprias.
 
-4.2 Troca Inteligente (Smart Swap)
-
-Sugestão de Equivalentes: Quando um produto possui alternativas (ex: outra marca ou modelo similar), um botão "TROCAR" é exibido.
-
-Comparativo de Preços: O modal de troca mostra a diferença de valor (acréscimo ou economia) entre o item atual e o sugerido.
-
-Substituição em Um Clique: Ao selecionar o equivalente, o sistema substitui o item mantendo a quantidade escolhida anteriormente.
-
-4.3 Catálogo de Adição Rápida
-
-Filtros por Categoria: Abas rápidas (Canetas, Cadernos, Papéis) para segmentar os produtos.
-
-Busca Preditiva: Barra de pesquisa que filtra itens por nome ou marca enquanto o utilizador digita.
-
-Multi-adição: O modal permite adicionar vários itens sem fechar a interface, otimizando o tempo de compra.
-
-4.4 Finalização e Checkout
-
-Cálculo de Desconto Progressivo: Exibição clara do valor total vs. valor com desconto no PIX (10%).
-
-Opção de Presente: Toggle interativo para adicionar embalagem especial com acréscimo automático no total.
-
-Resumo Persistente: Barra inferior que acompanha o utilizador, exibindo sempre o valor final e o botão de fechamento.
+## 5. Experiência do Usuário (UX)
+- **Modais Minimalistas:** Formulários de criação de lista integrados ao painel.
+- **Home Landing Page:** Página de entrada com foco em conversão e boas-vindas.
+- **Logo Dinâmica:** Navegação inteligente que retorna o usuário ao painel se logado, ou à home se deslogado.

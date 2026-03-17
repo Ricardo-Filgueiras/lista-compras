@@ -207,6 +207,9 @@ a:hover { color: var(--primary-hover); }
 }
 .form-input:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 4px rgba(249, 115, 22, 0.1); }
 
+/* ─────── Utilities ─────── */
+.hidden { display: none !important; }
+
 /* ─────── Responsive ─────── */
 @media (max-width: 600px) {
   .nav-container, .main-content, .footer-container { padding: 0 1rem; }
