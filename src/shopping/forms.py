@@ -17,14 +17,16 @@ class ShoppingListForm(forms.ModelForm):
 class ShoppingItemForm(forms.ModelForm):
     class Meta:
         model = ShoppingItem
-        fields = ['name', 'quantity_value', 'unit', 'price']
+        fields = ['category', 'name', 'quantity_value', 'unit', 'price']
         labels = {
+            'category': 'Categoria',
             'name': 'Produto',
             'quantity_value': 'Quantidade',
             'unit': 'Unidade',
             'price': 'Preço unitário (R$)',
         }
         widgets = {
+            'category': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ex: Hardware, Periféricos, Serviços', 'list': 'categories-list'}),
             'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ex: Arroz Tio João 5kg'}),
             'quantity_value': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.001', 'min': '0.001'}),
             'unit': forms.Select(attrs={'class': 'form-input'}),

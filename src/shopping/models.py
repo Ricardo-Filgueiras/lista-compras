@@ -8,6 +8,7 @@ class ShoppingList(models.Model):
     name = models.CharField('Nome', max_length=200)
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shopping_lists')
     budget = models.DecimalField('Orçamento', max_digits=10, decimal_places=2, null=True, blank=True)
+    is_locked = models.BooleanField('Concluída (Travada)', default=False)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -38,6 +39,7 @@ class ShoppingItem(models.Model):
     quantity_value = models.DecimalField('Quantidade', max_digits=10, decimal_places=3, default=1)
     unit = models.CharField('Unidade', max_length=10, choices=UNIT_CHOICES, default='un')
     price = models.DecimalField('Preço unitário', max_digits=10, decimal_places=2, default=0)
+    category = models.CharField('Categoria', max_length=100, blank=True, default='Geral')
     is_purchased = models.BooleanField('Comprado', default=False)
     created_at = models.DateTimeField(auto_now_add=True)
 

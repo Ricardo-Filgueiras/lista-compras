@@ -36,13 +36,16 @@ def _calc_totals(shopping_list):
         total=Sum(price_expr)
     )['total'] or 0
 
+    total_all = pending + bought
+    total_pix = total_all * DecimalField(max_digits=10, decimal_places=2).to_python(0.9)
     budget = shopping_list.budget or 0
-    balance = budget - (pending + bought)
+    balance = budget - total_all
 
     return {
         'total_pending': pending,
         'total_bought': bought,
-        'total_all': pending + bought,
+        'total_all': total_all,
+        'total_pix': total_pix,
         'budget': budget,
         'balance': balance,
     }
@@ -100,8 +103,20 @@ def list_detail(request, uuid):
 
 @login_required
 def list_edit(request, uuid):
-    """Edita nome/orçamento da lista. Apenas o dono."""
-    shopping_list = get_object_or_404(ShoppingList, uuid=uuid, user=request.user)
+    """Edita nome/orçamento/status da lista. Apenas o dono ou convidado com permissão."""
+    shopping_list, is_owner, share = _get_list_or_403(uuid, request.user)
+    can_edit = is_owner or (share and share.can_edit)
+    
+    if not can_edit:
+        messages.error(request, 'Sem permissão.')
+        return redirect('shopping:index')
+
+    if request.method == 'POST' and 'is_locked' in request.POST:
+        shopping_list.is_locked = request.POST.get('is_locked') == 'True'
+        shopping_list.save(update_fields=['is_locked'])
+        messages.success(request, 'Status da lista atualizado!')
+        return redirect('shopping:list_detail', uuid=shopping_list.uuid)
+
     form = ShoppingListForm(request.POST or None, instance=shopping_list)
     if form.is_valid():
         form.save()
@@ -129,6 +144,11 @@ def item_add(request, list_uuid):
     """Adiciona item à lista. Dono ou convidado com can_edit."""
     shopping_list, is_owner, share = _get_list_or_403(list_uuid, request.user)
     can_edit = is_owner or (share and share.can_edit)
+    
+    if shopping_list.is_locked:
+        messages.error(request, 'Lista travada para edição.')
+        return redirect('shopping:list_detail', uuid=list_uuid)
+
     if not can_edit:
         messages.error(request, 'Sem permissão para adicionar itens.')
         return redirect('shopping:list_detail', uuid=list_uuid)
@@ -148,14 +168,35 @@ def item_add(request, list_uuid):
 
 @login_required
 def item_edit(request, list_uuid, item_uuid):
-    """Edita um item. Dono ou convidado com can_edit."""
+    """Edita um item. Dono ou convidado com can_edit. Suporta HTMX +/-."""
     shopping_list, is_owner, share = _get_list_or_403(list_uuid, request.user)
     can_edit = is_owner or (share and share.can_edit)
+    
+    if shopping_list.is_locked:
+        return HttpResponse('Lista travada', status=403)
+
     if not can_edit:
-        messages.error(request, 'Sem permissão para editar itens.')
-        return redirect('shopping:list_detail', uuid=list_uuid)
+        return HttpResponse('Sem permissão', status=403)
 
     item = get_object_or_404(ShoppingItem, uuid=item_uuid, shopping_list=shopping_list)
+    
+    # Lógica HTMX para botões de quantidade
+    action = request.GET.get('action')
+    if request.method == 'POST' and action in ['inc', 'dec']:
+        if action == 'inc':
+            item.quantity_value += 1
+        elif action == 'dec' and item.quantity_value > 1:
+            item.quantity_value -= 1
+        item.save(update_fields=['quantity_value'])
+        
+        # Retorna apenas o card atualizado (ou sinaliza refresh se necessário para o total)
+        # Para atualizar o footer via HTMX, poderíamos usar HX-Trigger, mas vamos simplificar por hora
+        response = render(request, 'shopping/partials/item_row.html', {
+            'item': item, 'list': shopping_list, 'can_edit': can_edit
+        })
+        response['HX-Trigger'] = 'update-totals'
+        return response
+
     form = ShoppingItemForm(request.POST or None, instance=item)
     if form.is_valid():
         form.save()
@@ -172,13 +213,21 @@ def item_delete(request, list_uuid, item_uuid):
     """Exclui um item. Dono ou convidado com can_edit."""
     shopping_list, is_owner, share = _get_list_or_403(list_uuid, request.user)
     can_edit = is_owner or (share and share.can_edit)
+    
+    if shopping_list.is_locked:
+        return HttpResponse('Lista travada', status=403)
+
     if not can_edit:
-        messages.error(request, 'Sem permissão para excluir itens.')
-        return redirect('shopping:list_detail', uuid=list_uuid)
+        return HttpResponse('Sem permissão', status=403)
 
     item = get_object_or_404(ShoppingItem, uuid=item_uuid, shopping_list=shopping_list)
-    if request.method == 'POST':
+    
+    if request.method == 'POST' or request.method == 'DELETE':
         item.delete()
+        if request.headers.get('HX-Request'):
+            response = HttpResponse('')
+            response['HX-Trigger'] = 'update-totals'
+            return response
         messages.success(request, 'Item removido.')
         return redirect('shopping:list_detail', uuid=shopping_list.uuid)
 
@@ -244,6 +293,34 @@ def share_remove(request, uuid, share_id):
         share.delete()
         messages.success(request, 'Acesso removido.')
     return redirect('shopping:list_share', uuid=shopping_list.uuid)
+
+
+@login_required
+def list_totals(request, uuid):
+    """Retorna apenas o resumo financeiro para atualização via HTMX."""
+    shopping_list, is_owner, share = _get_list_or_403(uuid, request.user)
+    totals = _calc_totals(shopping_list)
+    return render(request, 'shopping/partials/footer_summary.html', {
+        'list': shopping_list,
+        **totals,
+    })
+
+
+@login_required
+def list_join(request, uuid):
+    """Permite que um usuário entre na lista como editor via link direto."""
+    shopping_list = get_object_or_404(ShoppingList, uuid=uuid)
+    
+    # Se não for o dono, cria o compartilhamento automaticamente
+    if shopping_list.user != request.user:
+        ShoppingShare.objects.get_or_create(
+            shopping_list=shopping_list,
+            shared_with=request.user,
+            defaults={'shared_by': shopping_list.user, 'can_edit': True}
+        )
+        messages.success(request, f'Você agora é um editor da lista: {shopping_list.name}')
+    
+    return redirect('shopping:list_detail', uuid=uuid)
 
 
 @login_required

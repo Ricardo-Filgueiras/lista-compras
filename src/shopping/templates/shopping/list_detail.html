@@ -1,122 +1,79 @@
 {% extends 'shopping/base.html' %}
-{% block title %}{{ list.name }} · Lista de Compras{% endblock %}
+{% block title %}{{ list.name }} · Papelaria Criativa{% endblock %}
 
 {% block content %}
 <div class="detail-page">
 
-  <!-- Cabeçalho da lista -->
-  <div class="detail-header">
+  <!-- Cabeçalho Compacto -->
+  <div class="detail-header" style="margin-bottom: 1rem; align-items: center;">
     <div class="detail-header-left">
-      <a href="{% url 'shopping:index' %}" class="back-link">← Voltar</a>
-      <h1 class="detail-title">{{ list.name }}</h1>
-      {% if not is_owner %}
-      <span class="badge badge-shared">Compartilhada por {{ list.user.username }}</span>
+      <a href="{% url 'shopping:index' %}" class="back-link" style="font-weight: 600; color: var(--primary);">← Minhas Listas</a>
+      <h1 class="detail-title" style="font-size: 1.5rem; letter-spacing: -0.02em;">{{ list.name }}</h1>
+      {% if list.is_locked %}
+        <span class="badge-swap" style="background: var(--success); color: #fff;">PEDIDO FINALIZADO</span>
       {% endif %}
     </div>
-    {% if is_owner %}
+    
+    {% if is_owner and not list.is_locked %}
     <div class="detail-actions">
-      <a href="{% url 'shopping:list_edit' list.uuid %}" class="btn btn-ghost btn-sm" id="btn-editar-lista">Editar</a>
-      <a href="{% url 'shopping:list_share' list.uuid %}" class="btn btn-ghost btn-sm" id="btn-compartilhar">🤝 Compartilhar</a>
-      <a href="{% url 'shopping:list_budget' list.uuid %}" class="btn btn-ghost btn-sm" id="btn-orcamento">💰 Orçamento</a>
-      <a href="{% url 'shopping:list_delete' list.uuid %}" class="btn btn-danger btn-sm" id="btn-excluir-lista">Excluir</a>
+      <a href="{% url 'shopping:list_edit' list.uuid %}" class="btn btn-ghost btn-xs">Editar</a>
+      <a href="{% url 'shopping:list_share' list.uuid %}" class="btn btn-ghost btn-xs">Compartilhar</a>
     </div>
     {% endif %}
   </div>
 
-  <!-- Cards de resumo financeiro -->
-  <div class="summary-cards">
-    <div class="summary-card summary-pending">
-      <div class="summary-label">Pendente</div>
-      <div class="summary-value">R$ {{ total_pending|floatformat:2 }}</div>
-    </div>
-    <div class="summary-card summary-bought">
-      <div class="summary-label">Comprado</div>
-      <div class="summary-value">R$ {{ total_bought|floatformat:2 }}</div>
-    </div>
-    <div class="summary-card summary-total">
-      <div class="summary-label">Total</div>
-      <div class="summary-value">R$ {{ total_all|floatformat:2 }}</div>
-    </div>
-    {% if budget %}
-    <div class="summary-card {% if balance >= 0 %}summary-ok{% else %}summary-over{% endif %}">
-      <div class="summary-label">Saldo (orç: R$ {{ budget|floatformat:2 }})</div>
-      <div class="summary-value">R$ {{ balance|floatformat:2 }}</div>
-      {% if budget %}
-      <div class="budget-bar">
-        {% widthratio total_all budget 100 as pct %}
-        <div class="budget-fill {% if balance < 0 %}budget-over{% endif %}" style="width: {% if pct|add:0 > 100 %}100{% else %}{{ pct }}{% endif %}%"></div>
-      </div>
-      {% endif %}
-    </div>
-    {% endif %}
+  <!-- Barra de Pesquisa / Filtro Rápido (Placeholder UX) -->
+  <div style="margin-bottom: 1.5rem;">
+    <input type="text" class="form-input" placeholder="Buscar no catálogo ou na lista..." style="border-radius: 12px; background: #fff;">
   </div>
 
-  <!-- Formulário Adicionar Item -->
-  {% if can_edit %}
-  <div class="add-item-section">
-    <details class="add-item-details" {% if not pending_items and not bought_items %}open{% endif %}>
-      <summary class="add-item-summary" id="toggle-add-item">
-        <span>+ Adicionar item</span>
-      </summary>
-      <form method="post" action="{% url 'shopping:item_add' list.uuid %}" class="item-add-form">
-        {% csrf_token %}
-        <div class="item-form-grid">
-          <div class="form-group form-group-wide">
-            <label class="form-label" for="{{ item_form.name.id_for_label }}">Produto</label>
-            {{ item_form.name }}
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="{{ item_form.quantity_value.id_for_label }}">Qtd</label>
-            {{ item_form.quantity_value }}
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="{{ item_form.unit.id_for_label }}">Un.</label>
-            {{ item_form.unit }}
-          </div>
-          <div class="form-group">
-            <label class="form-label" for="{{ item_form.price.id_for_label }}">Preço R$</label>
-            {{ item_form.price }}
-          </div>
-          <div class="form-group form-group-action">
-            <button type="submit" class="btn btn-primary" id="btn-adicionar-item">Adicionar</button>
-          </div>
+  <!-- Formulário de Adição Rápida (Se não estiver travada) -->
+  {% if can_edit and not list.is_locked %}
+  <div class="card" style="margin-bottom: 2rem; padding: 1rem; border-style: dashed; border-color: var(--primary);">
+    <form method="post" action="{% url 'shopping:item_add' list.uuid %}" class="item-add-form">
+      {% csrf_token %}
+      <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; align-items: flex-end;">
+        <div class="form-group" style="margin-bottom: 0;">
+          <label class="form-label" style="font-size: 0.7rem;">ADICIONAR PRODUTO</label>
+          {{ item_form.name }}
         </div>
-      </form>
-    </details>
+        <div class="form-group" style="margin-bottom: 0; width: 80px;">
+          <label class="form-label" style="font-size: 0.7rem;">PREÇO</label>
+          {{ item_form.price }}
+        </div>
+        <button type="submit" class="btn btn-primary" style="height: 45px; width: 45px; padding: 0; justify-content: center; border-radius: 12px;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        </button>
+      </div>
+    </form>
   </div>
   {% endif %}
 
-  <!-- Itens Pendentes -->
+  <!-- Listagem de Itens por Categoria (Simplificada) -->
   <section class="items-section">
-    <h2 class="section-title">
-      Pendentes
-      <span class="badge badge-count">{{ pending_items.count }}</span>
-    </h2>
-    {% if pending_items %}
-    <div class="items-list">
+    <div class="items-list" id="shopping-items">
       {% for item in pending_items %}
-      {% include 'shopping/partials/item_row.html' with item=item list=list can_edit=can_edit %}
+        {% include 'shopping/partials/item_row.html' with item=item list=list can_edit=can_edit %}
+      {% empty %}
+        {% if not bought_items %}
+          <div class="empty-state">
+            <div class="empty-icon">📝</div>
+            <p>Sua lista está vazia. Comece a adicionar materiais!</p>
+          </div>
+        {% endif %}
       {% endfor %}
-    </div>
-    {% else %}
-    <p class="empty-msg">Nenhum item pendente 🎉</p>
-    {% endif %}
-  </section>
 
-  <!-- Itens Comprados -->
-  {% if bought_items %}
-  <section class="items-section">
-    <h2 class="section-title section-bought">
-      Comprados
-      <span class="badge badge-count badge-success">{{ bought_items.count }}</span>
-    </h2>
-    <div class="items-list items-list-bought">
       {% for item in bought_items %}
-      {% include 'shopping/partials/item_row.html' with item=item list=list can_edit=can_edit %}
+        {% include 'shopping/partials/item_row.html' with item=item list=list can_edit=can_edit %}
       {% endfor %}
     </div>
   </section>
-  {% endif %}
 
 </div>
+
+<!-- Sticky Footer: Resumo e Checkout -->
+<div class="sticky-footer" id="main-footer">
+    {% include 'shopping/partials/footer_summary.html' with list=list total_all=total_all total_pix=total_pix %}
+</div>
+
 {% endblock %}

@@ -1,47 +1,73 @@
 {% extends 'shopping/base.html' %}
-{% block title %}Compartilhar · {{ list.name }}{% endblock %}
+{% block title %}Compartilhar · Papelaria Criativa{% endblock %}
 
 {% block content %}
 <div class="form-page">
-  <div class="form-card">
-    <div class="form-card-header">
-      <a href="{% url 'shopping:list_detail' list.uuid %}" class="back-link">← Voltar</a>
-      <h1>Compartilhar lista</h1>
-      <p class="form-subtitle">{{ list.name }}</p>
+  <div class="card" style="max-width: 500px; width: 100%; padding: 2.5rem; margin-top: 2rem;">
+    <div class="form-card-header" style="margin-bottom: 2rem;">
+      <a href="{% url 'shopping:list_detail' list.uuid %}" class="back-link" style="color: var(--primary); font-weight: 600;">← Voltar para a lista</a>
+      <h1 style="font-size: 1.75rem; font-weight: 800; margin-top: 1rem;">Compartilhar</h1>
+      <p class="form-subtitle" style="color: var(--text-muted);">{{ list.name }}</p>
+    </div>
+
+    <!-- Seção de Link Direto (Colaborativo) -->
+    <div style="background: var(--bg); padding: 1.25rem; border-radius: var(--radius-sm); border: 2px dashed var(--primary); margin-bottom: 2.5rem;">
+        <label class="form-label" style="font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 0.5rem; display: block;">Link de Edição Colaborativa 🤝</label>
+        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Envie para quem vai te ajudar a montar a lista. Ao clicar, a pessoa poderá adicionar e remover itens.</p>
+        
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <input type="text" id="share-url" class="form-input" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'shopping:list_join' list.uuid %}" style="background: #fff; font-size: 0.85rem; flex: 1; min-width: 200px;">
+            <button onclick="copyLink()" class="btn btn-primary" style="padding: 0 1.25rem; border-radius: 12px;">Copiar</button>
+            
+            <a href="https://wa.me/?text=Olá! Vamos editar nossa lista de material escolar juntos na Papelaria Criativa? Acesse aqui: {{ request.scheme }}://{{ request.get_host }}{% url 'shopping:list_join' list.uuid %}" 
+               target="_blank" 
+               class="btn btn-success" 
+               style="background: #25D366; color: #fff; border: none; width: 100%; justify-content: center; margin-top: 0.5rem; border-radius: 12px; padding: 0.85rem;">
+               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
+               &nbsp; Enviar pelo WhatsApp
+            </a>
+        </div>
+    </div>
+
+    <div style="text-align: center; margin-bottom: 2rem; position: relative;">
+        <span style="background: #fff; padding: 0 1rem; color: var(--text-dim); font-size: 0.8rem; position: relative; z-index: 1;">OU CONVIDAR POR USUÁRIO</span>
+        <hr style="position: absolute; top: 50%; left: 0; right: 0; border: none; border-top: 1px solid var(--border); z-index: 0;">
     </div>
 
     <form method="post" class="form-body">
       {% csrf_token %}
       {% for field in form %}
-      <div class="form-group {% if field.field_type == 'checkbox' %}form-group-check{% endif %}">
-        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      <div class="form-group" style="margin-bottom: 1.25rem;">
+        <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">{{ field.label }}</label>
         {{ field }}
         {% if field.errors %}
-        <ul class="form-errors">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        <ul class="form-errors" style="color: var(--danger); font-size: 0.8rem; margin-top: 0.5rem; list-style: none;">
+            {% for e in field.errors %}<li>{{ e }}</li>{% endfor %}
+        </ul>
         {% endif %}
       </div>
       {% endfor %}
-      <div class="form-actions">
-        <button type="submit" class="btn btn-primary" id="btn-compartilhar-lista">Compartilhar</button>
+      <div class="form-actions" style="margin-top: 1.5rem;">
+        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1rem;">Convidar Usuário</button>
       </div>
     </form>
 
     {% if shares %}
-    <div class="shares-list">
-      <h3 class="shares-title">Compartilhado com:</h3>
+    <div class="shares-list" style="margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
+      <h3 class="shares-title" style="font-size: 0.85rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem;">Usuários com Acesso:</h3>
       {% for share in shares %}
-      <div class="share-row">
-        <div class="share-info">
-          <span class="share-user">{{ share.shared_with.username }}</span>
+      <div class="share-row" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--bg);">
+        <div class="share-info" style="display: flex; flex-direction: column;">
+          <span class="share-user" style="font-weight: 700; color: var(--text);">{{ share.shared_with.username }}</span>
           {% if share.can_edit %}
-          <span class="badge badge-edit">pode editar</span>
+          <span style="font-size: 0.7rem; color: var(--secondary); font-weight: 600;">Pode editar</span>
           {% else %}
-          <span class="badge badge-view">somente leitura</span>
+          <span style="font-size: 0.7rem; color: var(--text-dim);">Somente leitura</span>
           {% endif %}
         </div>
         <form method="post" action="{% url 'shopping:share_remove' list.uuid share.id %}">
           {% csrf_token %}
-          <button type="submit" class="btn btn-danger btn-xs" id="remove-share-{{ share.id }}">Remover</button>
+          <button type="submit" class="btn btn-danger btn-xs" style="border: none;">Remover</button>
         </form>
       </div>
       {% endfor %}
@@ -49,4 +75,22 @@
     {% endif %}
   </div>
 </div>
+
+<script>
+function copyLink() {
+    var copyText = document.getElementById("share-url");
+    copyText.select();
+    copyText.setSelectionRange(0, 99999);
+    navigator.clipboard.writeText(copyText.value);
+    
+    const btn = event.target;
+    const originalText = btn.innerText;
+    btn.innerText = "Copiado!";
+    btn.style.background = "var(--success)";
+    setTimeout(() => {
+        btn.innerText = originalText;
+        btn.style.background = "var(--primary)";
+    }, 2000);
+}
+</script>
 {% endblock %}

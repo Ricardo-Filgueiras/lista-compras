@@ -1,0 +1,22 @@
+<div class="footer-container" hx-get="{% url 'shopping:list_totals' list.uuid %}" hx-trigger="update-totals from:body" hx-swap="outerHTML">
+    <div class="order-summary">
+        <div class="total-label">VALOR TOTAL</div>
+        <div class="total-value">R$ {{ total_all|floatformat:2 }}</div>
+        <div class="pix-discount">R$ {{ total_pix|floatformat:2 }} no PIX (10% OFF)</div>
+    </div>
+    
+    {% if not list.is_locked %}
+    <form method="post" action="{% url 'shopping:list_edit' list.uuid %}">
+        {% csrf_token %}
+        <input type="hidden" name="name" value="{{ list.name }}">
+        <input type="hidden" name="is_locked" value="True">
+        <button type="submit" class="btn btn-primary" style="padding: 1rem 2rem; border-radius: 16px; font-size: 1rem;">
+            FECHAR PEDIDO
+        </button>
+    </form>
+    {% else %}
+    <div class="btn btn-ghost" style="border-color: var(--success); color: var(--success); cursor: default;">
+        CONCLUÍDO
+    </div>
+    {% endif %}
+</div>
