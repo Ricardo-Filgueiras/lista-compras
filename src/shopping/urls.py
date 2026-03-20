@@ -12,6 +12,7 @@ urlpatterns = [
     path('<uuid:uuid>/orcamento/', views.list_budget, name='list_budget'),
     path('<uuid:uuid>/totais/', views.list_totals, name='list_totals'),
     path('<uuid:uuid>/qrcode/', views.list_qrcode, name='list_qrcode'),
+    path('<uuid:uuid>/pdf/', views.list_pdf, name='list_pdf'),
     path('<uuid:uuid>/entrar/', views.list_join, name='list_join'),
     path('<uuid:uuid>/usar-template/', views.list_clone, name='list_clone'),
     path('<uuid:list_uuid>/item/adicionar/', views.item_add, name='item_add'),

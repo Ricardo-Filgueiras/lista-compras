@@ -1,5 +1,8 @@
 import io
+import base64
 import qrcode
+from django.template.loader import render_to_string
+from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -414,3 +417,47 @@ def list_qrcode(request, uuid):
     buf.seek(0)
     
     return HttpResponse(buf.getvalue(), content_type="image/png")
+
+
+@login_required
+def list_pdf(request, uuid):
+    """Gera um PDF da lista para impressão."""
+    shopping_list, is_owner, share = _get_list_or_403(uuid, request.user)
+    totals = _calc_totals(shopping_list)
+    items = shopping_list.items.all()
+    
+    # Gera QR Code para a versão digital (clone) em Base64
+    from django.urls import reverse
+    url_path = reverse('shopping:list_clone', args=[uuid])
+    full_url = f"{request.scheme}://{request.get_host()}{url_path}"
+    
+    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    qr.add_data(full_url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    qr_base64 = base64.b64encode(buf.getvalue()).decode()
+    
+    context = {
+        'list': shopping_list,
+        'items': items,
+        'qr_code_base64': qr_base64,
+        'now': timezone.now(),
+        **totals,
+    }
+    
+    html_string = render_to_string('shopping/list_print.html', context)
+    
+    try:
+        from weasyprint import HTML
+        pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
+        
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        filename = f"Lista_{shopping_list.name.replace(' ', '_')}.pdf"
+        response['Content-Disposition'] = f'attachment; filename="{filename}"'
+        return response
+    except Exception as e:
+        messages.error(request, f"Erro ao gerar PDF: Certifique-se que o WeasyPrint e suas dependências de sistema estão instalados. ({e})")
+        return redirect('shopping:list_detail', uuid=uuid)
