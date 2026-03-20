@@ -18,6 +18,9 @@
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
             <input type="text" id="share-url" class="form-input" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'shopping:list_join' list.uuid %}" style="background: #fff; font-size: 0.85rem; flex: 1; min-width: 200px;">
             <button onclick="copyLink('share-url')" class="btn btn-primary" style="padding: 0 1.25rem; border-radius: 12px;">Copiar</button>
+            <button onclick="toggleQR('join')" class="btn" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 0.5rem 1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M0 .5A.5.5 0 0 1 .5 0h3a.5.5 0 0 1 0 1H1v2.5a.5.5 0 0 1-1 0v-3Zm12 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V1h-2.5a.5.5 0 0 1-.5-.5ZM.5 12a.5.5 0 0 1 .5.5V15h2.5a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5Zm15 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H15v-2.5a.5.5 0 0 1 .5-.5ZM4 4h1v1H4V4Z"/><path d="M7 2H2v5h5V2ZM3 3h3v3H3V3Zm2 8H4v1h1v-1Z"/><path d="M7 9H2v5h5V9ZM3 10h3v3H3v-3Zm8-6h1v1h-1V4Z"/><path d="M9 2h5v5H9V2Zm1 1v3h3V3h-3ZM8 8v2h1v1H8v1h2v-2h1v2h1v-1h2v-1h-3V8H8Zm2 2H9V9h1v1Zm4 2h-1v1h-2v1h3v-2Zm-4 2v-1H8v1h2Z"/><path d="M12 9h2V8h-2v1Z"/></svg>
+            </button>
         </div>
     </div>
 
@@ -29,6 +32,9 @@
         <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
             <input type="text" id="template-url" class="form-input" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'shopping:list_clone' list.uuid %}" style="background: #fff; font-size: 0.85rem; flex: 1; min-width: 200px;">
             <button onclick="copyLink('template-url')" class="btn btn-primary" style="background: #8B5CF6; border-color: #8B5CF6; padding: 0 1.25rem; border-radius: 12px;">Copiar</button>
+            <button onclick="toggleQR('clone')" class="btn" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 0.5rem 1rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M0 .5A.5.5 0 0 1 .5 0h3a.5.5 0 0 1 0 1H1v2.5a.5.5 0 0 1-1 0v-3Zm12 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V1h-2.5a.5.5 0 0 1-.5-.5ZM.5 12a.5.5 0 0 1 .5.5V15h2.5a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5Zm15 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H15v-2.5a.5.5 0 0 1 .5-.5ZM4 4h1v1H4V4Z"/><path d="M7 2H2v5h5V2ZM3 3h3v3H3V3Zm2 8H4v1h1v-1Z"/><path d="M7 9H2v5h5V9ZM3 10h3v3H3v-3Zm8-6h1v1h-1V4Z"/><path d="M9 2h5v5H9V2Zm1 1v3h3V3h-3ZM8 8v2h1v1H8v1h2v-2h1v2h1v-1h2v-1h-3V8H8Zm2 2H9V9h1v1Zm4 2h-1v1h-2v1h3v-2Zm-4 2v-1H8v1h2Z"/><path d="M12 9h2V8h-2v1Z"/></svg>
+            </button>
             
             <a href="https://wa.me/?text=Olá! Preparei um template de lista de material na Papelaria Criativa. Clique aqui para ganhar sua própria cópia e começar a editar: {{ request.scheme }}://{{ request.get_host }}{% url 'shopping:list_clone' list.uuid %}" 
                target="_blank" 
@@ -87,7 +93,42 @@
   </div>
 </div>
 
+<!-- Modal para QR Code -->
+<div id="qr-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
+    <div class="card" style="max-width: 400px; width: 100%; text-align: center; padding: 2rem; position: relative;">
+        <button onclick="toggleQR()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
+        <h3 id="qr-title" style="margin-bottom: 1rem; font-weight: 800;">QR Code</h3>
+        <p id="qr-subtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Aponte a câmera para escanear</p>
+        <img id="qr-image" src="" alt="QR Code" style="width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border);">
+        <button onclick="toggleQR()" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center;">Fechar</button>
+    </div>
+</div>
+
 <script>
+function toggleQR(type) {
+    const modal = document.getElementById('qr-modal');
+    const img = document.getElementById('qr-image');
+    const title = document.getElementById('qr-title');
+    const subtitle = document.getElementById('qr-subtitle');
+    
+    if (modal.style.display === 'none' || modal.style.display === '') {
+        const baseUrl = "{% url 'shopping:list_qrcode' list.uuid %}";
+        img.src = `${baseUrl}?type=${type}`;
+        
+        if (type === 'join') {
+            title.innerText = "Acesso Colaborativo 🤝";
+            subtitle.innerText = "Quem escanear poderá editar esta lista junto com você.";
+        } else {
+            title.innerText = "Template de Lista 📑";
+            subtitle.innerText = "Quem escanear criará uma cópia própria desta lista.";
+        }
+        
+        modal.style.display = 'flex';
+    } else {
+        modal.style.display = 'none';
+    }
+}
+
 function copyLink(inputId) {
     var copyText = document.getElementById(inputId);
     copyText.select();

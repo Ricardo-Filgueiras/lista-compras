@@ -1,3 +1,5 @@
+import io
+import qrcode
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
 from django.contrib import messages
@@ -375,3 +377,40 @@ def list_budget(request, uuid):
         messages.success(request, 'Orçamento definido!')
         return redirect('shopping:list_detail', uuid=shopping_list.uuid)
     return render(request, 'shopping/list_budget.html', {'form': form, 'list': shopping_list})
+
+
+@login_required
+def list_qrcode(request, uuid):
+    """Gera um QR Code dinâmico para a lista (join ou clone)."""
+    # Verifica permissão (apenas quem tem acesso à lista pode gerar o QR)
+    shopping_list, is_owner, share = _get_list_or_403(uuid, request.user)
+    
+    qr_type = request.GET.get('type', 'clone')
+    
+    # Define a URL baseada no tipo
+    from django.urls import reverse
+    if qr_type == 'join':
+        url_path = reverse('shopping:list_join', args=[uuid])
+    else:
+        url_path = reverse('shopping:list_clone', args=[uuid])
+        
+    full_url = f"{request.scheme}://{request.get_host()}{url_path}"
+    
+    # Gera o QR Code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(full_url)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    # Salva em buffer de memória
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    buf.seek(0)
+    
+    return HttpResponse(buf.getvalue(), content_type="image/png")

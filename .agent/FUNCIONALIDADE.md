@@ -25,3 +25,17 @@ O WebApp foi projetado para oferecer uma experiência de "Aplicativo Nativo" no 
 - **Modais Minimalistas:** Formulários de criação de lista integrados ao painel.
 - **Home Landing Page:** Página de entrada com foco em conversão e boas-vindas.
 - **Logo Dinâmica:** Navegação inteligente que retorna o usuário ao painel se logado, ou à home se deslogado.
+
+## 6. Compartilhamento via QR Code Dinâmico
+- **Geração On-the-Fly (Server-side):** Utilização da biblioteca qrcode em Python para gerar a imagem do código instantaneamente no backend. A imagem é servida diretamente via HttpResponse como um stream de dados (MIME type image/png), eliminando a necessidade de salvar arquivos físicos ou ocupar espaço no storage do WebApp.
+- **URLs de Template Encurtadas:** Integração com identificadores únicos (UUIDs) para criar QR Codes com baixa densidade de pixels, garantindo uma leitura rápida e precisa mesmo quando impressos em materiais pequenos como etiquetas ou cartões de visita.
+- **Modal de Partilha Integrado:** Interface minimalista que exibe o QR Code gerado dinamicamente ao clicar no ícone de partilha, permitindo que o lojista ou o cliente apresente o código diretamente na tela do telemóvel para clonagem imediata.
+- **Ponto de Venda Físico (Phygital):** Facilita a transição do mundo físico para o digital, permitindo que a papelaria imprima cartazes de "Listas Escolares 2026" para colagem em vitrines ou escolas, direcionando o pai diretamente para o fluxo de /usar-template/ sem digitação de URLs.
+- **Validação de Acesso:** O endpoint de geração do QR Code verifica em tempo real se o template solicitado é público e válido, garantindo que códigos antigos ou de listas privadas não sejam renderizados por questões de segurança.
+
+## 7. Exportação de PDF com WeasyPrint
+- **Geração de PDF On-the-Fly:** Utilização da biblioteca WeasyPrint para converter templates HTML em documentos PDF profissionais diretamente no servidor, sem salvar arquivos físicos.
+- **Integração com QR Code Dinâmico:** Incorporação automática do QR Code gerado em Base64 no PDF, permitindo acesso direto à versão digital da lista.
+- **Template Específico para Impressão:** Design otimizado para papel A4 com estilos CSS inline, mantendo a identidade visual Slate Palette da Papelaria Criativa.
+- **Download Direto:** Resposta HTTP com Content-Type application/pdf e Content-Disposition attachment, permitindo download imediato sem armazenamento no servidor.
+- **Cálculos Automáticos:** Inclusão de subtotais e totais com desconto PIX no documento impresso, garantindo precisão para o setor de separação física da loja.
