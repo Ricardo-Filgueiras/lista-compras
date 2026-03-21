@@ -1,36 +1,45 @@
 from django import forms
 from django.contrib.auth.models import User
-from .models import ShoppingList, ShoppingItem, ShoppingShare
+from .models import ShoppingList, ShoppingItem, ShoppingShare, Product
 
 
 class ShoppingListForm(forms.ModelForm):
     class Meta:
         model = ShoppingList
-        fields = ['name', 'budget']
-        labels = {'name': 'Nome da lista', 'budget': 'Orçamento (R$)'}
+        fields = ['name', 'budget', 'student_name', 'school', 'grade']
+        labels = {
+            'name': 'Nome da lista', 
+            'budget': 'Orçamento (R$)',
+            'student_name': 'Nome do Estudante',
+            'school': 'Escola',
+            'grade': 'Série/Ano'
+        }
         widgets = {
-            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ex: Compras do mês'}),
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ex: Material Escolar 2026'}),
             'budget': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0,00', 'step': '0.01'}),
+            'student_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Nome do aluno'}),
+            'school': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Nome da escola'}),
+            'grade': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ex: 1º Ano EF'}),
         }
 
 
 class ShoppingItemForm(forms.ModelForm):
     class Meta:
         model = ShoppingItem
-        fields = ['category', 'name', 'quantity_value', 'unit', 'price']
+        fields = ['product', 'name', 'quantity', 'price', 'category']
         labels = {
+            'product': 'Produto do Catálogo',
+            'name': 'Nome (se não houver no catálogo)',
+            'quantity': 'Quantidade',
+            'price': 'Preço (Manual)',
             'category': 'Categoria',
-            'name': 'Produto',
-            'quantity_value': 'Quantidade',
-            'unit': 'Unidade',
-            'price': 'Preço unitário (R$)',
         }
         widgets = {
-            'category': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ex: Hardware, Periféricos, Serviços', 'list': 'categories-list'}),
-            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ex: Arroz Tio João 5kg'}),
-            'quantity_value': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.001', 'min': '0.001'}),
-            'unit': forms.Select(attrs={'class': 'form-input'}),
+            'product': forms.Select(attrs={'class': 'form-input'}),
+            'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ex: Lápis HB'}),
+            'quantity': forms.NumberInput(attrs={'class': 'form-input', 'min': '1'}),
             'price': forms.NumberInput(attrs={'class': 'form-input', 'step': '0.01', 'min': '0'}),
+            'category': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ex: Escrita'}),
         }
 
 

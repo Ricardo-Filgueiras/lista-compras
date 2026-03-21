@@ -1,107 +1,69 @@
-03 - Automação CSV e Gestão de Catálogo (Templates)
+# 03 - Automação CSV e Gestão de Catálogo (Templates)
 
-1. Objetivo da Automação
+## 1. Importação em Massa (CSV)
 
-Eliminar a necessidade de cadastro manual unitário de produtos. O lojista deve ser capaz de exportar uma planilha de seu sistema de estoque atual (ERP local) e importá-la para o WebApp, garantindo preços e estoques atualizados para o período de volta às aulas.
+O arquivo `.csv` deve seguir o cabeçalho:
+`name,price,category,stock,barcode,image_url`
 
-2. Ingestão de Dados via CSV
-
-2.1 Formato do Arquivo Requerido
-
-O arquivo .csv deve seguir obrigatoriamente este cabeçalho (headers):
-nome,preco,categoria,estoque,codigo_barras,imagem_url
-
-2.2 Implementação da View de Importação (views.py)
-
-Esta funcionalidade deve processar o arquivo em memória, validar os dados e atualizar produtos existentes ou criar novos.
-
+```python
 import csv
 import io
 from django.contrib import messages
-from django.contrib.admin.views.decorators import staff_member_required
-from .models import Produto
+from .models import Product
 
 @staff_member_required
-def importar_produtos_csv(request):
+def import_products_csv(request):
     if request.method == 'POST':
         csv_file = request.FILES.get('file')
-        
-        if not csv_file.name.endswith('.csv'):
-            messages.error(request, 'O arquivo deve ser um CSV.')
-            return redirect('admin_catalogo')
-
         data_set = csv_file.read().decode('UTF-8')
         io_string = io.StringIO(data_set)
-        next(io_string) # Pular o cabeçalho
+        next(io_string) # Pular header
 
-        count = 0
         for row in csv.reader(io_string, delimiter=',', quotechar='"'):
-            obj, created = Produto.objects.update_or_create(
-                nome=row[0],
+            Product.objects.update_or_create(
+                name=row[0],
                 defaults={
-                    'preco': row[1],
-                    'categoria': row[2],
-                    'estoque': row[3],
-                    'codigo_barras': row[4],
-                    'imagem_url': row[5],
+                    'price': row[1],
+                    'category': row[2],
+                    'stock': row[3],
+                    'barcode': row[4],
+                    'image_url': row[5],
                 }
             )
-            count += 1
-        
-        messages.success(request, f'{count} produtos processados com sucesso!')
+        messages.success(request, 'Catálogo atualizado com sucesso!')
         return redirect('admin_catalogo')
-    
-    return render(request, 'staff/importar_csv.html')
+```
 
+## 2. Mecanismo de Clonagem (Copy-on-Write)
 
-3. Gestão de Templates (Listas Modelo)
+Implementação da rota `/usar-template/[UUID]/` para criação de cópias exclusivas.
 
-Um "Template" é uma ListaEscolar onde is_template=True e o campo usuario pode ser nulo ou vinculado ao admin.
-
-3.1 Fluxo de Criação de Template
-
-Admin cria uma nova lista no painel.
-
-Adiciona os itens padrão (ex: Lista 1º Ano Colégio Santo Agostinho).
-
-Marca o checkbox "Tornar Template Público".
-
-O sistema gera automaticamente o QR Code apontando para a URL de clonagem: /usar-template/[UUID]/.
-
-3.2 Lógica de Clonagem (Copy on Write)
-
-Quando um cliente escaneia o QR Code, o sistema não edita o template, mas cria uma cópia para o cliente.
-
+```python
 @login_required
-def clonar_template(request, uuid):
-    template = get_object_or_404(ListaEscolar, uuid=uuid, is_template=True)
+def clone_template(request, uuid):
+    template = get_object_or_404(ShoppingList, uuid=uuid, is_template=True)
     
-    # Criar a nova lista para o usuário logado
-    nova_lista = ListaEscolar.objects.create(
-        usuario=request.user,
-        escola=template.escola,
-        serie=template.serie,
+    # Nova lista baseada no template
+    nova_lista = ShoppingList.objects.create(
+        user=request.user,
+        school=template.school,
+        grade=template.grade,
         status='aberta'
     )
     
-    # Clonar os itens do template para a nova lista
-    for item in template.itens.all():
-        ItemLista.objects.create(
-            lista=nova_lista,
-            produto=item.produto,
-            quantidade=item.quantidade
+    # Clonagem profunda dos itens
+    for item in template.items.all():
+        ShoppingItem.objects.create(
+            shopping_list=nova_lista,
+            product=item.product,
+            quantity=item.quantity
         )
     
-    messages.success(request, f'Lista da {template.escola} copiada com sucesso!')
+    messages.success(request, f'Template "{template.school}" clonado com sucesso!')
     return redirect('client_dashboard')
+```
 
-
-4. Interface do Catálogo (Staff)
-
-O catálogo no painel administrativo deve permitir:
-
-Busca Rápida: Filtro por nome ou código de barras.
-
-Edição em Lote: Selecionar múltiplos produtos e aplicar desconto (ex: -10%).
-
-Visualização de Templates: Uma área dedicada para ver todos os QR Codes ativos e prontos para impressão em etiquetas.
+## 3. Gestão de Templates Públicos
+- **Check-box "Tornar Template Público":** Define `is_template=True` e `is_locked=True`.
+- **Geração de QR Code:** Vinculado à URL `/v/<short_id>/` (encurtada).
+- **Interface de Impressão:** Grid de templates ativos com botões para impressão de etiquetas (80mm).

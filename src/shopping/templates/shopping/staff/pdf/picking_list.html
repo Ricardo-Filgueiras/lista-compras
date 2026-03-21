@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        @page { size: A4; margin: 1.5cm; }
+        body { font-family: 'Inter', sans-serif; font-size: 10pt; color: #1e293b; line-height: 1.5; }
+        .header { border-bottom: 2px solid #e2e8f0; padding-bottom: 1rem; margin-bottom: 2rem; }
+        .title { font-size: 18pt; font-weight: 800; color: #0f172a; margin: 0; }
+        .meta { color: #64748b; font-size: 9pt; }
+        
+        table { width: 100%; border-collapse: collapse; }
+        th { text-align: left; padding: 0.75rem; border-bottom: 1px solid #e2e8f0; color: #64748b; font-weight: 800; text-transform: uppercase; font-size: 8pt; }
+        td { padding: 0.75rem; border-bottom: 1px solid #f1f5f9; vertical-align: middle; }
+        
+        .checkbox { width: 16px; height: 16px; border: 1px solid #cbd5e1; display: inline-block; vertical-align: middle; }
+        .qty { font-weight: 800; color: #0f172a; }
+        .product-name { font-weight: 700; }
+        .category { font-size: 8pt; color: #94a3b8; font-weight: 800; text-transform: uppercase; }
+        
+        .footer { margin-top: 3rem; display: flex; justify-content: space-between; border-top: 1px solid #e2e8f0; padding-top: 2rem; }
+        .totals { font-size: 11pt; }
+        .pix-highlight { color: #16a34a; font-weight: 800; }
+        .qr-section { text-align: center; }
+        .qr-label { font-size: 7pt; font-weight: 800; text-transform: uppercase; color: #64748b; margin-top: 0.5rem; }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1 class="title">Lista de Separação (Picking List)</h1>
+        <div class="meta">
+            <strong>Lista:</strong> {{ shopping_list.name }} | 
+            <strong>Escola:</strong> {{ shopping_list.school|default:"Geral" }} | 
+            <strong>Estudante:</strong> {{ shopping_list.student_name|default:"N/A" }}
+            <br>
+            <strong>ID Pedido:</strong> {{ shopping_list.uuid.hex|slice:":8" }} | 
+            <strong>Data:</strong> {{ now|date:"d/m/Y H:i" }}
+        </div>
+    </div>
+
+    <table>
+        <thead>
+            <tr>
+                <th width="30">OK</th>
+                <th width="40">Qtd</th>
+                <th>Artigo / Categoria</th>
+                <th width="80">P. Unit</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for item in items %}
+            <tr>
+                <td><div class="checkbox"></div></td>
+                <td class="qty">{{ item.quantity }}x</td>
+                <td>
+                    <div class="product-name">{{ item.get_item_name }}</div>
+                    <div class="category">{{ item.product.category|default:item.category }}</div>
+                </td>
+                <td style="color: #64748b;">R$ {{ item.get_item_price }}</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
+
+    <div class="footer">
+        <div class="totals">
+            <div>Valor Total: <strong>R$ {{ total|floatformat:2 }}</strong></div>
+            <div class="pix-highlight">Valor com 10% OFF (PIX): R$ {{ pix_total|floatformat:2 }}</div>
+        </div>
+        <div class="qr-section">
+            <img src="data:image/png;base64,{{ qr_base64 }}" width="80">
+            <div class="qr-label">Escaneie para concluir</div>
+        </div>
+    </div>
+</body>
+</html>

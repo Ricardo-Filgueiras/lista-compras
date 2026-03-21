@@ -1,0 +1,73 @@
+{% extends 'shopping/base.html' %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-bold text-slate-900">Gestão de Catálogo e Templates</h1>
+        <a href="{% url 'admin_dashboard' %}" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 font-bold hover:bg-slate-50 transition">
+            Voltar ao Dashboard
+        </a>
+    </div>
+
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <!-- Seção: Templates Públicos -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h2 class="text-xl font-black uppercase text-slate-500 mb-6 flex items-center gap-2">
+                📋 Templates Escolares <span class="bg-slate-100 px-2 py-0.5 rounded text-xs">{{ templates.count }}</span>
+            </h2>
+            <div class="flex flex-col gap-4">
+                {% for t in templates %}
+                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                    <div>
+                        <h3 class="font-bold text-slate-800">{{ t.school }}</h3>
+                        <p class="text-xs text-slate-500">{{ t.grade }}</p>
+                    </div>
+                    <div class="flex gap-2">
+                        <a href="{% url 'list_qrcode' t.uuid %}" class="bg-white p-2 rounded-lg border border-slate-200 hover:shadow-sm transition">
+                            📷 QR Code
+                        </a>
+                        <a href="{% url 'list_detail' t.uuid %}" class="bg-slate-800 text-white p-2 px-4 rounded-lg text-sm font-bold hover:bg-slate-900 transition">
+                            Ver Itens
+                        </a>
+                    </div>
+                </div>
+                {% empty %}
+                <p class="text-sm text-slate-400 italic">Nenhum template público cadastrado.</p>
+                {% endfor %}
+            </div>
+        </div>
+
+        <!-- Seção: Produtos (Resumo) -->
+        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
+            <h2 class="text-xl font-black uppercase text-slate-500 mb-6 flex items-center gap-2">
+                📦 Catálogo de Produtos <span class="bg-slate-100 px-2 py-0.5 rounded text-xs">{{ products.count }}</span>
+            </h2>
+            <div class="overflow-hidden rounded-xl border border-slate-100">
+                <table class="w-full text-left text-sm">
+                    <thead class="bg-slate-50 text-slate-500 font-bold">
+                        <tr>
+                            <th class="px-4 py-3">Nome</th>
+                            <th class="px-4 py-3">Preço</th>
+                            <th class="px-4 py-3">Estoque</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-100">
+                        {% for p in products|slice:":10" %}
+                        <tr class="hover:bg-slate-50 transition">
+                            <td class="px-4 py-3 text-slate-800 font-medium">{{ p.name }}</td>
+                            <td class="px-4 py-3 text-green-600 font-bold">R$ {{ p.price }}</td>
+                            <td class="px-4 py-3 text-slate-500">{{ p.stock }} un</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+                {% if products.count > 10 %}
+                <div class="p-3 bg-slate-50 text-center">
+                    <p class="text-xs text-slate-400">Exibindo os primeiros 10 produtos. Use o admin do Django para gestão completa.</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

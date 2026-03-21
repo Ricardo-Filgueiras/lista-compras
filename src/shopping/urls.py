@@ -2,6 +2,10 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
+    # Redirecionamento Inicial
+    path('dashboard/', views.redirect_by_role, name='dashboard_redirect'),
+    
+    # Cliente
     path('', views.home, name='home'),
     path('compras/', views.index, name='index'),
     path('<uuid:uuid>/', views.list_detail, name='list_detail'),
@@ -19,4 +23,11 @@ urlpatterns = [
     path('<uuid:list_uuid>/item/<uuid:item_uuid>/editar/', views.item_edit, name='item_edit'),
     path('<uuid:list_uuid>/item/<uuid:item_uuid>/excluir/', views.item_delete, name='item_delete'),
     path('<uuid:list_uuid>/item/<uuid:item_uuid>/toggle/', views.item_toggle, name='item_toggle'),
+    
+    # Staff (Administração)
+    path('dashboard/admin/', views.admin_dashboard, name='admin_dashboard'),
+    path('dashboard/admin/status/<uuid:uuid>/', views.update_status_htmx, name='update_status_htmx'),
+    path('dashboard/admin/importar-csv/', views.import_products_csv, name='import_products_csv'),
+    path('dashboard/admin/pdf/<uuid:uuid>/', views.generate_picking_pdf, name='generate_picking_pdf'),
+    path('dashboard/admin/catalogo/', views.admin_catalogo, name='admin_catalogo'),
 ]

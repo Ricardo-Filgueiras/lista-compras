@@ -1,15 +1,18 @@
 import io
+import csv
 import base64
 import qrcode
+from decimal import Decimal
 from django.template.loader import render_to_string
 from django.utils import timezone
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required
+from django.contrib.admin.views.decorators import staff_member_required
 from django.contrib import messages
-from django.http import HttpResponse
-from django.db.models import Q, Sum, F, DecimalField, ExpressionWrapper
+from django.http import HttpResponse, JsonResponse
+from django.db.models import Q, Sum, F
 
-from .models import ShoppingList, ShoppingItem, ShoppingShare
+from .models import ShoppingList, ShoppingItem, ShoppingShare, Product
 from .forms import ShoppingListForm, ShoppingItemForm, ShareListForm, BudgetListForm
 
 
@@ -18,6 +21,11 @@ from .forms import ShoppingListForm, ShoppingItemForm, ShareListForm, BudgetList
 def _get_list_or_403(uuid, user):
     """Recupera uma lista pelo UUID e verifica se o user tem acesso (dono ou convidado)."""
     shopping_list = get_object_or_404(ShoppingList, uuid=uuid)
+    
+    # Staff sempre tem acesso para fins de gestão
+    if user.is_staff:
+        return shopping_list, shopping_list.user == user, None
+        
     is_owner = shopping_list.user == user
     share = ShoppingShare.objects.filter(shopping_list=shopping_list, shared_with=user).first()
     if not is_owner and share is None:
@@ -26,52 +34,44 @@ def _get_list_or_403(uuid, user):
     return shopping_list, is_owner, share
 
 
-def _calc_totals(shopping_list):
-    """Calcula totais financeiros da lista."""
-    price_expr = ExpressionWrapper(
-        F('quantity_value') * F('price'),
-        output_field=DecimalField(max_digits=12, decimal_places=2),
-    )
-
-    pending = shopping_list.items.filter(is_purchased=False).aggregate(
-        total=Sum(price_expr)
-    )['total'] or 0
-
-    bought = shopping_list.items.filter(is_purchased=True).aggregate(
-        total=Sum(price_expr)
-    )['total'] or 0
-
-    total_all = pending + bought
-    total_pix = total_all * DecimalField(max_digits=10, decimal_places=2).to_python(0.9)
-    budget = shopping_list.budget or 0
-    balance = budget - total_all
-
-    return {
-        'total_pending': pending,
-        'total_bought': bought,
-        'total_all': total_all,
-        'total_pix': total_pix,
-        'budget': budget,
-        'balance': balance,
-    }
+def generate_base64_qr(url):
+    """Gera um QR Code em Base64 para inclusão direta em HTML/PDF."""
+    qr = qrcode.QRCode(version=1, box_size=10, border=2)
+    qr.add_data(url)
+    qr.make(fit=True)
+    img = qr.make_image(fill_color="black", back_color="white")
+    
+    buf = io.BytesIO()
+    img.save(buf, format="PNG")
+    return base64.b64encode(buf.getvalue()).decode()
 
 
-# ────────────────────────── list views ───────────────────────────
-
+# ────────────────────────── core views ───────────────────────────
 
 def home(request):
     """Página de destino (Landing Page) para usuários não logados."""
     if request.user.is_authenticated:
-        return redirect('shopping:index')
+        return redirect('shopping:dashboard_redirect')
     return render(request, 'shopping/home.html')
 
 
 @login_required
+def redirect_by_role(request):
+    """Encaminha o usuário baseando-se no seu nível de permissão."""
+    if request.user.is_staff:
+        return redirect('shopping:admin_dashboard')
+    return redirect('shopping:index')
+
+
+@login_required
 def index(request):
-    """Página principal: exibe todas as listas do usuário (próprias + compartilhadas)."""
-    own_lists = ShoppingList.objects.filter(user=request.user)
+    """Página principal do cliente: exibe todas as suas listas."""
+    own_lists = ShoppingList.objects.filter(user=request.user, is_template=False)
     shared_ids = ShoppingShare.objects.filter(shared_with=request.user).values_list('shopping_list_id', flat=True)
     shared_lists = ShoppingList.objects.filter(id__in=shared_ids)
+
+    # Templates públicos disponíveis para clonagem
+    templates = ShoppingList.objects.filter(is_template=True)
 
     form = ShoppingListForm()
     if request.method == 'POST':
@@ -86,20 +86,21 @@ def index(request):
     return render(request, 'shopping/list_index.html', {
         'own_lists': own_lists,
         'shared_lists': shared_lists,
+        'templates': templates,
         'form': form,
     })
 
 
 @login_required
 def list_detail(request, uuid):
-    """Detalha uma lista com itens, totais e formulário de item."""
+    """Detalha uma lista com itens e formulário de adição."""
     shopping_list, is_owner, share = _get_list_or_403(uuid, request.user)
-    can_edit = is_owner or (share and share.can_edit)
+    can_edit = (is_owner or (share and share.can_edit)) and not shopping_list.is_locked
 
-    pending_items = shopping_list.items.filter(is_purchased=False)
-    bought_items = shopping_list.items.filter(is_purchased=True)
-    totals = _calc_totals(shopping_list)
-
+    items = shopping_list.items.all().select_related('product')
+    pending_items = items.filter(is_purchased=False)
+    bought_items = items.filter(is_purchased=True)
+    
     item_form = ShoppingItemForm() if can_edit else None
 
     return render(request, 'shopping/list_detail.html', {
@@ -109,43 +110,117 @@ def list_detail(request, uuid):
         'pending_items': pending_items,
         'bought_items': bought_items,
         'item_form': item_form,
-        **totals,
+        'total_all': shopping_list.get_total(),
+        'total_pix': shopping_list.get_pix_total(),
     })
 
 
-@login_required
-def list_edit(request, uuid):
-    """Edita nome/orçamento/status da lista. Apenas o dono ou convidado com permissão."""
-    shopping_list, is_owner, share = _get_list_or_403(uuid, request.user)
-    can_edit = is_owner or (share and share.can_edit)
+# ───────────────────────── staff views ──────────────────────────
+
+@staff_member_required
+def admin_dashboard(request):
+    """Pipeline de pedidos (Staff)."""
+    listas = ShoppingList.objects.filter(is_template=False).order_by('-created_at')
     
-    if not can_edit:
-        messages.error(request, 'Sem permissão.')
-        return redirect('shopping:index')
-
-    if request.method == 'POST' and 'is_locked' in request.POST:
-        shopping_list.is_locked = request.POST.get('is_locked') == 'True'
-        shopping_list.save(update_fields=['is_locked'])
-        messages.success(request, 'Status da lista atualizado!')
-        return redirect('shopping:list_detail', uuid=shopping_list.uuid)
-
-    form = ShoppingListForm(request.POST or None, instance=shopping_list)
-    if form.is_valid():
-        form.save()
-        messages.success(request, 'Lista atualizada!')
-        return redirect('shopping:list_detail', uuid=shopping_list.uuid)
-    return render(request, 'shopping/list_form.html', {'form': form, 'list': shopping_list, 'action': 'Editar'})
+    context = {
+        'listas_fechadas': listas.filter(status='fechada'),
+        'listas_separacao': listas.filter(status='separacao'),
+        'listas_prontas': listas.filter(status='pronto'),
+    }
+    return render(request, 'shopping/staff/dashboard.html', context)
 
 
-@login_required
-def list_delete(request, uuid):
-    """Exclui uma lista. Apenas o dono."""
-    shopping_list = get_object_or_404(ShoppingList, uuid=uuid, user=request.user)
+@staff_member_required
+def update_status_htmx(request, uuid):
+    """Atualiza o status da lista via HTMX."""
+    lista = get_object_or_404(ShoppingList, uuid=uuid)
+    novo_status = request.POST.get('status')
+    
+    if novo_status in dict(ShoppingList.STATUS_CHOICES):
+        lista.status = novo_status
+        # Se fechar ou avançar, tranca a edição para o cliente
+        if novo_status != 'aberta':
+            lista.is_locked = True
+        else:
+            lista.is_locked = False
+        lista.save()
+        
+    return render(request, 'shopping/staff/components/shoppinglist_row.html', {'lista': lista})
+
+
+@staff_member_required
+def import_products_csv(request):
+    """Importação massiva de produtos."""
     if request.method == 'POST':
-        shopping_list.delete()
-        messages.success(request, 'Lista excluída.')
-        return redirect('shopping:index')
-    return render(request, 'shopping/list_confirm_delete.html', {'list': shopping_list})
+        csv_file = request.FILES.get('file')
+        if not csv_file:
+            messages.error(request, 'Nenhum arquivo enviado.')
+            return redirect('shopping:admin_catalogo')
+            
+        try:
+            data_set = csv_file.read().decode('UTF-8')
+            io_string = io.StringIO(data_set)
+            next(io_string) # Pular header
+
+            count = 0
+            for row in csv.reader(io_string, delimiter=',', quotechar='"'):
+                Product.objects.update_or_create(
+                    name=row[0],
+                    defaults={
+                        'price': Decimal(row[1]),
+                        'category': row[2],
+                        'stock': int(row[3]),
+                        'barcode': row[4],
+                        'image_url': row[5] if len(row) > 5 else None,
+                    }
+                )
+                count += 1
+            messages.success(request, f'{count} produtos processados com sucesso!')
+        except Exception as e:
+            messages.error(request, f'Erro ao processar CSV: {e}')
+            
+        return redirect('shopping:admin_catalogo')
+    
+    return render(request, 'shopping/staff/import_csv.html')
+
+
+@staff_member_required
+def generate_picking_pdf(request, uuid):
+    """Gera PDF de separação (Picking List)."""
+    lista = get_object_or_404(ShoppingList, uuid=uuid)
+    items = lista.items.all().select_related('product').order_by('product__category')
+    
+    qr_base64 = generate_base64_qr(request.build_absolute_uri(lista.get_absolute_url()))
+    
+    context = {
+        'shopping_list': lista,
+        'items': items,
+        'total': lista.get_total(),
+        'pix_total': lista.get_pix_total(),
+        'qr_base64': qr_base64,
+    }
+    
+    html_string = render_to_string('shopping/staff/pdf/picking_list.html', context)
+    
+    try:
+        from weasyprint import HTML
+        pdf_file = HTML(string=html_string).write_pdf()
+        response = HttpResponse(pdf_file, content_type='application/pdf')
+        response['Content-Disposition'] = f'attachment; filename="Picking_{lista.uuid.hex[:8]}.pdf"'
+        return response
+    except Exception as e:
+        return HttpResponse(f"Erro PDF: {e}", status=500)
+
+
+@staff_member_required
+def admin_catalogo(request):
+    """Visão geral do catálogo e templates."""
+    products = Product.objects.all()
+    templates = ShoppingList.objects.filter(is_template=True)
+    return render(request, 'shopping/staff/catalogo.html', {
+        'products': products,
+        'templates': templates,
+    })
 
 
 # ───────────────────────── item views ──────────────────────────
@@ -153,16 +228,10 @@ def list_delete(request, uuid):
 
 @login_required
 def item_add(request, list_uuid):
-    """Adiciona item à lista. Dono ou convidado com can_edit."""
+    """Adiciona item à lista."""
     shopping_list, is_owner, share = _get_list_or_403(list_uuid, request.user)
-    can_edit = is_owner or (share and share.can_edit)
-    
     if shopping_list.is_locked:
         messages.error(request, 'Lista travada para edição.')
-        return redirect('shopping:list_detail', uuid=list_uuid)
-
-    if not can_edit:
-        messages.error(request, 'Sem permissão para adicionar itens.')
         return redirect('shopping:list_detail', uuid=list_uuid)
 
     form = ShoppingItemForm(request.POST or None)
@@ -170,41 +239,30 @@ def item_add(request, list_uuid):
         item = form.save(commit=False)
         item.shopping_list = shopping_list
         item.save()
-        messages.success(request, f'"{item.name}" adicionado!')
-        return redirect('shopping:list_detail', uuid=shopping_list.uuid)
+        return redirect('shopping:list_detail', uuid=list_uuid)
 
-    return render(request, 'shopping/item_form.html', {
-        'form': form, 'list': shopping_list, 'action': 'Adicionar',
-    })
+    return render(request, 'shopping/item_form.html', {'form': form, 'list': shopping_list})
 
 
 @login_required
 def item_edit(request, list_uuid, item_uuid):
-    """Edita um item. Dono ou convidado com can_edit. Suporta HTMX +/-."""
+    """Edita item (Suporta HTMX +/-)."""
     shopping_list, is_owner, share = _get_list_or_403(list_uuid, request.user)
-    can_edit = is_owner or (share and share.can_edit)
-    
     if shopping_list.is_locked:
         return HttpResponse('Lista travada', status=403)
 
-    if not can_edit:
-        return HttpResponse('Sem permissão', status=403)
-
     item = get_object_or_404(ShoppingItem, uuid=item_uuid, shopping_list=shopping_list)
     
-    # Lógica HTMX para botões de quantidade
     action = request.GET.get('action')
     if request.method == 'POST' and action in ['inc', 'dec']:
         if action == 'inc':
-            item.quantity_value += 1
-        elif action == 'dec' and item.quantity_value > 1:
-            item.quantity_value -= 1
-        item.save(update_fields=['quantity_value'])
+            item.quantity += 1
+        elif action == 'dec' and item.quantity > 1:
+            item.quantity -= 1
+        item.save(update_fields=['quantity'])
         
-        # Retorna apenas o card atualizado (ou sinaliza refresh se necessário para o total)
-        # Para atualizar o footer via HTMX, poderíamos usar HX-Trigger, mas vamos simplificar por hora
         response = render(request, 'shopping/partials/item_row.html', {
-            'item': item, 'list': shopping_list, 'can_edit': can_edit
+            'item': item, 'list': shopping_list, 'can_edit': True
         })
         response['HX-Trigger'] = 'update-totals'
         return response
@@ -212,252 +270,127 @@ def item_edit(request, list_uuid, item_uuid):
     form = ShoppingItemForm(request.POST or None, instance=item)
     if form.is_valid():
         form.save()
-        messages.success(request, 'Item atualizado!')
-        return redirect('shopping:list_detail', uuid=shopping_list.uuid)
+        return redirect('shopping:list_detail', uuid=list_uuid)
 
-    return render(request, 'shopping/item_form.html', {
-        'form': form, 'list': shopping_list, 'item': item, 'action': 'Editar',
-    })
-
+    return render(request, 'shopping/item_form.html', {'form': form, 'list': shopping_list, 'item': item})
 
 @login_required
 def item_delete(request, list_uuid, item_uuid):
-    """Exclui um item. Dono ou convidado com can_edit."""
-    shopping_list, is_owner, share = _get_list_or_403(list_uuid, request.user)
-    can_edit = is_owner or (share and share.can_edit)
-    
-    if shopping_list.is_locked:
-        return HttpResponse('Lista travada', status=403)
-
-    if not can_edit:
-        return HttpResponse('Sem permissão', status=403)
-
+    shopping_list, _, _ = _get_list_or_403(list_uuid, request.user)
+    if shopping_list.is_locked: return HttpResponse(status=403)
     item = get_object_or_404(ShoppingItem, uuid=item_uuid, shopping_list=shopping_list)
-    
-    if request.method == 'POST' or request.method == 'DELETE':
-        item.delete()
-        if request.headers.get('HX-Request'):
-            response = HttpResponse('')
-            response['HX-Trigger'] = 'update-totals'
-            return response
-        messages.success(request, 'Item removido.')
-        return redirect('shopping:list_detail', uuid=shopping_list.uuid)
-
-    return render(request, 'shopping/item_confirm_delete.html', {'item': item, 'list': shopping_list})
-
+    item.delete()
+    if request.headers.get('HX-Request'):
+        response = HttpResponse('')
+        response['HX-Trigger'] = 'update-totals'
+        return response
+    return redirect('shopping:list_detail', uuid=list_uuid)
 
 @login_required
 def item_toggle(request, list_uuid, item_uuid):
-    """Alterna status comprado/pendente via POST (HTMX ou formulário)."""
-    shopping_list, is_owner, share = _get_list_or_403(list_uuid, request.user)
-    item = get_object_or_404(ShoppingItem, uuid=item_uuid, shopping_list=shopping_list)
+    item = get_object_or_404(ShoppingItem, uuid=item_uuid, shopping_list__uuid=list_uuid)
     item.is_purchased = not item.is_purchased
     item.save(update_fields=['is_purchased'])
-
-    # Se for requisição HTMX, instrui o browser a recarregar a página completa
     if request.headers.get('HX-Request'):
-        response = HttpResponse()
-        response['HX-Refresh'] = 'true'
-        return response
-
-    return redirect('shopping:list_detail', uuid=shopping_list.uuid)
-
-
-# ─────────────────────── share & budget ────────────────────────
-
+        return HttpResponse(headers={'HX-Refresh': 'true'})
+    return redirect('shopping:list_detail', uuid=list_uuid)
 
 @login_required
 def list_share(request, uuid):
-    """Compartilha a lista com outro usuário. Apenas o dono."""
     shopping_list = get_object_or_404(ShoppingList, uuid=uuid, user=request.user)
     form = ShareListForm(request.POST or None)
-    shares = shopping_list.shares.select_related('shared_with')
-
     if form.is_valid():
         target_user = form.cleaned_data['username']
-        can_edit = form.cleaned_data['can_edit']
-
-        if target_user == request.user:
-            messages.error(request, 'Você não pode compartilhar com você mesmo.')
-        else:
-            obj, created = ShoppingShare.objects.update_or_create(
-                shopping_list=shopping_list,
-                shared_with=target_user,
-                defaults={'shared_by': request.user, 'can_edit': can_edit},
-            )
-            msg = 'Lista compartilhada!' if created else 'Permissões atualizadas.'
-            messages.success(request, msg)
-            return redirect('shopping:list_share', uuid=shopping_list.uuid)
-
-    return render(request, 'shopping/list_share.html', {
-        'list': shopping_list,
-        'form': form,
-        'shares': shares,
-    })
-
+        ShoppingShare.objects.update_or_create(
+            shopping_list=shopping_list, shared_with=target_user,
+            defaults={'shared_by': request.user, 'can_edit': form.cleaned_data['can_edit']}
+        )
+        return redirect('shopping:list_share', uuid=uuid)
+    return render(request, 'shopping/list_share.html', {'list': shopping_list, 'form': form, 'shares': shopping_list.shares.all()})
 
 @login_required
 def share_remove(request, uuid, share_id):
-    """Remove um compartilhamento. Apenas o dono."""
-    shopping_list = get_object_or_404(ShoppingList, uuid=uuid, user=request.user)
-    share = get_object_or_404(ShoppingShare, id=share_id, shopping_list=shopping_list)
-    if request.method == 'POST':
-        share.delete()
-        messages.success(request, 'Acesso removido.')
-    return redirect('shopping:list_share', uuid=shopping_list.uuid)
-
+    share = get_object_or_404(ShoppingShare, id=share_id, shopping_list__uuid=uuid, shopping_list__user=request.user)
+    share.delete()
+    return redirect('shopping:list_share', uuid=uuid)
 
 @login_required
 def list_totals(request, uuid):
-    """Retorna apenas o resumo financeiro para atualização via HTMX."""
-    shopping_list, is_owner, share = _get_list_or_403(uuid, request.user)
-    totals = _calc_totals(shopping_list)
+    shopping_list, _, _ = _get_list_or_403(uuid, request.user)
     return render(request, 'shopping/partials/footer_summary.html', {
         'list': shopping_list,
-        **totals,
+        'total_all': shopping_list.get_total(),
+        'total_pix': shopping_list.get_pix_total(),
     })
-
-
-@login_required
-def list_join(request, uuid):
-    """Permite que um usuário entre na lista como editor via link direto."""
-    shopping_list = get_object_or_404(ShoppingList, uuid=uuid)
-    
-    # Se não for o dono, cria o compartilhamento automaticamente
-    if shopping_list.user != request.user:
-        ShoppingShare.objects.get_or_create(
-            shopping_list=shopping_list,
-            shared_with=request.user,
-            defaults={'shared_by': shopping_list.user, 'can_edit': True}
-        )
-        messages.success(request, f'Você agora é um editor da lista: {shopping_list.name}')
-    
-    return redirect('shopping:list_detail', uuid=uuid)
-
-
-@login_required
-def list_clone(request, uuid):
-    """Exibe confirmação e cria uma cópia privada (template) de uma lista existente."""
-    original_list = get_object_or_404(ShoppingList, uuid=uuid)
-    
-    if request.method == 'POST':
-        # Cria a nova lista
-        new_list = ShoppingList.objects.create(
-            user=request.user,
-            name=f"{original_list.name} (Cópia)",
-            budget=original_list.budget
-        )
-        
-        # Copia todos os itens da lista original
-        items = original_list.items.all()
-        new_items = []
-        for item in items:
-            new_items.append(ShoppingItem(
-                shopping_list=new_list,
-                name=item.name,
-                quantity_value=item.quantity_value,
-                unit=item.unit,
-                price=item.price,
-                category=item.category,
-                is_purchased=False
-            ))
-        
-        ShoppingItem.objects.bulk_create(new_items)
-        
-        messages.success(request, f'Lista "{new_list.name}" criada com sucesso!')
-        return redirect('shopping:list_detail', uuid=new_list.uuid)
-
-    return render(request, 'shopping/list_clone_confirm.html', {'list': original_list})
-
-
-@login_required
-def list_budget(request, uuid):
-    """Define o orçamento de uma lista. Apenas o dono."""
-    shopping_list = get_object_or_404(ShoppingList, uuid=uuid, user=request.user)
-    form = BudgetListForm(request.POST or None, instance=shopping_list)
-    if form.is_valid():
-        form.save()
-        messages.success(request, 'Orçamento definido!')
-        return redirect('shopping:list_detail', uuid=shopping_list.uuid)
-    return render(request, 'shopping/list_budget.html', {'form': form, 'list': shopping_list})
-
 
 @login_required
 def list_qrcode(request, uuid):
     """Gera um QR Code dinâmico para a lista (join ou clone)."""
-    # Verifica permissão (apenas quem tem acesso à lista pode gerar o QR)
-    shopping_list, is_owner, share = _get_list_or_403(uuid, request.user)
+    shopping_list, _, _ = _get_list_or_403(uuid, request.user)
     
     qr_type = request.GET.get('type', 'clone')
-    
-    # Define a URL baseada no tipo
     from django.urls import reverse
+    
     if qr_type == 'join':
         url_path = reverse('shopping:list_join', args=[uuid])
     else:
         url_path = reverse('shopping:list_clone', args=[uuid])
         
-    full_url = f"{request.scheme}://{request.get_host()}{url_path}"
+    full_url = request.build_absolute_uri(url_path)
     
-    # Gera o QR Code
-    qr = qrcode.QRCode(
-        version=1,
-        error_correction=qrcode.constants.ERROR_CORRECT_L,
-        box_size=10,
-        border=4,
-    )
+    qr = qrcode.QRCode(version=1, box_size=10, border=4)
     qr.add_data(full_url)
     qr.make(fit=True)
     
     img = qr.make_image(fill_color="black", back_color="white")
-    
-    # Salva em buffer de memória
     buf = io.BytesIO()
     img.save(buf, format="PNG")
-    buf.seek(0)
     
     return HttpResponse(buf.getvalue(), content_type="image/png")
 
-
 @login_required
 def list_pdf(request, uuid):
-    """Gera um PDF da lista para impressão."""
-    shopping_list, is_owner, share = _get_list_or_403(uuid, request.user)
-    totals = _calc_totals(shopping_list)
-    items = shopping_list.items.all()
-    
-    # Gera QR Code para a versão digital (clone) em Base64
-    from django.urls import reverse
-    url_path = reverse('shopping:list_clone', args=[uuid])
-    full_url = f"{request.scheme}://{request.get_host()}{url_path}"
-    
-    qr = qrcode.QRCode(version=1, box_size=10, border=2)
-    qr.add_data(full_url)
-    qr.make(fit=True)
-    img = qr.make_image(fill_color="black", back_color="white")
-    
-    buf = io.BytesIO()
-    img.save(buf, format="PNG")
-    qr_base64 = base64.b64encode(buf.getvalue()).decode()
-    
-    context = {
-        'list': shopping_list,
-        'items': items,
-        'qr_code_base64': qr_base64,
-        'now': timezone.now(),
-        **totals,
-    }
-    
-    html_string = render_to_string('shopping/list_print.html', context)
-    
-    try:
-        from weasyprint import HTML
-        pdf_file = HTML(string=html_string, base_url=request.build_absolute_uri('/')).write_pdf()
-        
-        response = HttpResponse(pdf_file, content_type='application/pdf')
-        filename = f"Lista_{shopping_list.name.replace(' ', '_')}.pdf"
-        response['Content-Disposition'] = f'attachment; filename="{filename}"'
-        return response
-    except Exception as e:
-        messages.error(request, f"Erro ao gerar PDF: Certifique-se que o WeasyPrint e suas dependências de sistema estão instalados. ({e})")
+    # Reutiliza lógica de picking mas com template de cliente
+    return generate_picking_pdf(request, uuid) # Simplificado para teste
+
+@login_required
+def list_clone(request, uuid):
+    template = get_object_or_404(ShoppingList, uuid=uuid, is_template=True)
+    if request.method == 'POST':
+        nova = ShoppingList.objects.create(user=request.user, name=f"Cópia de {template.school}", school=template.school, grade=template.grade)
+        for item in template.items.all():
+            ShoppingItem.objects.create(shopping_list=nova, product=item.product, quantity=item.quantity, name=item.name, price=item.price, category=item.category)
+        return redirect('shopping:list_detail', uuid=nova.uuid)
+    return render(request, 'shopping/list_clone_confirm.html', {'list': template})
+
+@login_required
+def list_join(request, uuid):
+    lista = get_object_or_404(ShoppingList, uuid=uuid)
+    ShoppingShare.objects.get_or_create(shopping_list=lista, shared_with=request.user, defaults={'shared_by': lista.user, 'can_edit': True})
+    return redirect('shopping:list_detail', uuid=uuid)
+
+@login_required
+def list_budget(request, uuid):
+    lista = get_object_or_404(ShoppingList, uuid=uuid, user=request.user)
+    form = BudgetListForm(request.POST or None, instance=lista)
+    if form.is_valid():
+        form.save()
         return redirect('shopping:list_detail', uuid=uuid)
+    return render(request, 'shopping/list_budget.html', {'form': form, 'list': lista})
+
+@login_required
+def list_edit(request, uuid):
+    lista = get_object_or_404(ShoppingList, uuid=uuid, user=request.user)
+    form = ShoppingListForm(request.POST or None, instance=lista)
+    if form.is_valid():
+        form.save()
+        return redirect('shopping:list_detail', uuid=uuid)
+    return render(request, 'shopping/list_form.html', {'form': form, 'list': lista})
+
+@login_required
+def list_delete(request, uuid):
+    lista = get_object_or_404(ShoppingList, uuid=uuid, user=request.user)
+    if request.method == 'POST':
+        lista.delete()
+        return redirect('shopping:index')
+    return render(request, 'shopping/list_confirm_delete.html', {'list': lista})

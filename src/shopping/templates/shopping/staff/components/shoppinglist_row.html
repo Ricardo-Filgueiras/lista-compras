@@ -1,0 +1,46 @@
+<div id="lista-card-{{ lista.uuid }}" class="bg-white p-4 rounded-xl shadow-sm border border-slate-200 transition hover:shadow-md">
+    <div class="flex justify-between items-start mb-2">
+        <h3 class="font-bold text-slate-800">{{ lista.student_name|default:lista.name }}</h3>
+        <span class="text-[10px] font-black uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-500">
+            {{ lista.uuid.hex|slice:":8" }}
+        </span>
+    </div>
+    
+    <p class="text-sm text-slate-500 mb-4">
+        {{ lista.school }} - {{ lista.grade }}
+    </p>
+
+    <div class="flex flex-wrap gap-2">
+        {% if lista.status == 'fechada' %}
+            <button 
+                hx-post="{% url 'update_status_htmx' lista.uuid %}" 
+                hx-vals='{"status": "separacao"}'
+                hx-target="#lista-card-{{ lista.uuid }}"
+                hx-swap="outerHTML"
+                class="flex-1 bg-blue-600 text-white text-xs font-bold py-2 rounded-lg hover:bg-blue-700 transition">
+                Iniciar Separação
+            </button>
+        {% elif lista.status == 'separacao' %}
+            <a href="{% url 'generate_picking_pdf' lista.uuid %}" class="flex-1 bg-slate-800 text-white text-xs font-bold py-2 rounded-lg text-center hover:bg-slate-900 transition">
+                Picking PDF
+            </a>
+            <button 
+                hx-post="{% url 'update_status_htmx' lista.uuid %}" 
+                hx-vals='{"status": "pronto"}'
+                hx-target="#lista-card-{{ lista.uuid }}"
+                hx-swap="outerHTML"
+                class="flex-1 bg-green-600 text-white text-xs font-bold py-2 rounded-lg hover:bg-green-700 transition">
+                Concluir
+            </button>
+        {% elif lista.status == 'pronto' %}
+            <button 
+                hx-post="{% url 'update_status_htmx' lista.uuid %}" 
+                hx-vals='{"status": "entregue"}'
+                hx-target="#lista-card-{{ lista.uuid }}"
+                hx-swap="delete"
+                class="flex-1 bg-slate-200 text-slate-700 text-xs font-bold py-2 rounded-lg hover:bg-slate-300 transition">
+                Entregar
+            </button>
+        {% endif %}
+    </div>
+</div>

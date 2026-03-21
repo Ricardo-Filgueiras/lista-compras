@@ -1,74 +1,74 @@
-04 - Motor PDF e Logística de Impressão (Picking List)
+# 04 - Motor PDF e Logística de Impressão (Picking List)
 
-1. Objetivo da Logística de Impressão
+## 1. Geração de QR Code Dinâmico (Memory Stream)
 
-O objetivo desta fase é transpor a eficiência digital para o mundo físico. Utilizaremos o motor de renderização já configurado para gerar documentos que auxiliem o funcionário na separação dos itens (Picking List) e forneçam ao cliente um comprovante físico com o QR Code de retorno.
+```python
+import qrcode
+import base64
+from io import BytesIO
 
-2. Reutilização de Componentes Existentes
+def generate_base64_qr(url):
+    qr = qrcode.QRCode(version=1, box_size=10, border=5)
+    qr.add_data(url)
+    qr.make(fit=True)
+    
+    img = qr.make_image(fill_color="black", back_color="white")
+    buffer = BytesIO()
+    img.save(buffer, format="PNG")
+    
+    return base64.b64encode(buffer.getvalue()).decode('utf-8')
+```
 
-O projeto já possui as dependências necessárias instaladas. Reutilizaremos:
+## 2. Picking List (Folha de Separação)
 
-WeasyPrint: Para converter os templates HTML específicos de "Staff" em PDF.
+### 2.1 Template de Impressão (Picking)
+Otimizado para P&B, com foco em conferência manual.
 
-Lib qrcode (Python): Para gerar os códigos de acesso rápido nos documentos impressos.
+```html
+<style>
+    @page { size: A4; margin: 1cm; }
+    .item-row { border-bottom: 1px solid #000; padding: 4px 0; }
+    .pix-price { font-weight: bold; color: #16A34A; }
+</style>
 
-Base64: Para injetar as imagens dos QR Codes diretamente no HTML sem salvar ficheiros.
+<div class="header">
+    <h1>SEPARAÇÃO: {{ shopping_list.school }} - {{ shopping_list.grade }}</h1>
+    <p>Cliente: {{ shopping_list.student_name }} | UUID: {{ shopping_list.uuid|slice:":8" }}</p>
+</div>
 
-3. Implementação da Picking List (Folha de Separação)
+{% for item in items %}
+<div class="item-row">
+    [ ] {{ item.quantity }}x {{ item.product.name }} 
+    <small>({{ item.product.category }})</small>
+</div>
+{% endfor %}
 
-3.1 Template HTML de Separação (staff/pdf/picking_list.html)
+<div class="footer">
+    <p>Total: R$ {{ total }}</p>
+    <p class="pix-price">Total PIX (10% off): R$ {{ pix_total }}</p>
+    <img src="data:image/png;base64,{{ qr_base64 }}" width="100">
+</div>
+```
 
-Este template deve ser otimizado para leitura rápida e conter campos de conferência manual.
+## 3. View de Geração de PDF (WeasyPrint)
 
-{% load static %}
-<!DOCTYPE html>
-<html>
-<head>
-    <style>
-        @page { size: A4; margin: 1cm; }
-        body { font-family: 'Courier', monospace; font-size: 10pt; }
-        .item-row { border-bottom: 1px solid #000; padding: 5px 0; }
-        .checkbox { border: 1px solid #000; width: 15px; height: 15px; display: inline-block; }
-        .header { text-align: center; border-bottom: 3px double #000; margin-bottom: 10px; }
-    </style>
-</head>
-<body>
-    <div class="header">
-        <h1>LISTA DE SEPARAÇÃO #{{ lista.id }}</h1>
-        <p>Escola: {{ lista.escola }} | Cliente: {{ lista.usuario.get_full_name }}</p>
-    </div>
-
-    {% for item in itens %}
-    <div class="item-row">
-        <span class="checkbox"></span> 
-        <strong>[{{ item.quantidade }}x]</strong> {{ item.produto.nome }}
-        <br><small>Categoria: {{ item.produto.categoria }} | Local: Corredor {{ item.produto.categoria|slice:":1" }}</small>
-    </div>
-    {% endfor %}
-
-    <div style="margin-top: 30px; text-align: center;">
-        <img src="data:image/png;base64,{{ qr_base64 }}" width="80">
-        <p>Escaneie para finalizar no sistema</p>
-    </div>
-</body>
-</html>
-
-
-3.2 View de Geração do PDF Administrativo
-
-A lógica é idêntica à do cliente, mas com contexto focado na operação interna.
+```python
+from django.template.loader import render_to_string
+from weasyprint import HTML
+from django.http import HttpResponse
 
 @staff_member_required
-def gerar_picking_pdf(request, uuid):
-    lista = get_object_or_404(ListaEscolar, uuid=uuid)
-    itens = lista.itens.all().order_by('produto__categoria') # Ordenar para facilitar o percurso na loja
+def generate_picking_pdf(request, uuid):
+    lista = get_object_or_404(ShoppingList, uuid=uuid)
+    items = lista.items.all().order_by('product__category')
     
-    # Reutilização da lógica de QR Code em memória
-    qr_base64 = gerar_base64_qr(request.build_absolute_uri(lista.get_absolute_url()))
-
+    qr_base64 = generate_base64_qr(request.build_absolute_uri(lista.get_absolute_url()))
+    
     context = {
-        'lista': lista,
-        'itens': itens,
+        'shopping_list': lista,
+        'items': items,
+        'total': lista.get_total(),
+        'pix_total': lista.get_pix_total(),
         'qr_base64': qr_base64,
     }
     
@@ -76,34 +76,10 @@ def gerar_picking_pdf(request, uuid):
     pdf_file = HTML(string=html_string).write_pdf()
     
     response = HttpResponse(pdf_file, content_type='application/pdf')
-    response['Content-Disposition'] = f'inline; filename="Picking_{lista.id}.pdf"'
+    response['Content-Disposition'] = f'attachment; filename="Picking_{lista.uuid|slice:":8"}.pdf"'
     return response
+```
 
-
-4. Impressão de Etiquetas de QR Code para Templates
-
-Para os Templates Públicos, o Admin precisa imprimir etiquetas para colar nos murais da loja.
-
-4.1 Layout de Etiqueta (80mm ou A4 Múltiplo)
-
-Conteúdo: Nome da Escola + Série + QR Code Grande + Instrução "Aponte a Câmara".
-
-Lógica: Uma View que gera uma página A4 com 12 a 24 QR Codes de templates diferentes para corte e colagem rápida.
-
-5. Fluxo Operacional (O Ciclo Completo)
-
-O lojista visualiza um novo pedido no Dashboard.
-
-Clica em "Imprimir Picking List".
-
-Com o papel em mãos, faz a separação física (marcando os checkboxes).
-
-Após a separação, lê o QR Code no rodapé do papel com o seu telemóvel para abrir a lista no sistema e marcar como "Pronto para Levantamento".
-
-6. Próximos Passos
-
-Testar a renderização de tabelas longas (quebra de página) no WeasyPrint.
-
-Configurar a ordenação dos itens por categoria no PDF para minimizar o movimento do funcionário dentro da papelaria.
-
-Implementar o botão de impressão rápida diretamente na linha da tabela do Dashboard Staff.
+## 4. Logística Phygital
+- **QR Code Reverso:** Injetado no rodapé de todos os documentos impressos para que o lojista, ao terminar a separação, aponte a câmera e mude o status para "Pronto para Levantamento" instantaneamente no sistema.
+- **Cache de QR Codes:** Utilização de `lru_cache` para URLs de templates estáticos para reduzir processamento de CPU.
