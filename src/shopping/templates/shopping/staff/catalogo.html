@@ -1,73 +1,80 @@
-{% extends 'shopping/base.html' %}
+﻿{% extends 'shopping/base.html' %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-slate-900">Gestão de Catálogo e Templates</h1>
-        <a href="{% url 'admin_dashboard' %}" class="px-4 py-2 border border-slate-200 rounded-lg text-slate-600 font-bold hover:bg-slate-50 transition">
-            Voltar ao Dashboard
-        </a>
-    </div>
+<div class="flex min-h-screen bg-slate-50">
+    <aside class="w-72 shrink-0 border-r border-slate-200 bg-white p-6">
+        <div class="mb-8">
+            <h2 class="text-xs uppercase tracking-wider font-semibold text-slate-500">Atelier Admin</h2>
+            <h1 class="text-2xl font-bold text-slate-900">Catálogo de Itens</h1>
+        </div>
+        <nav class="space-y-2 text-sm">
+            <a href="{% url 'shopping:admin_dashboard' %}" class="block rounded-xl px-3 py-2 font-semibold text-slate-700 hover:bg-slate-100">Pipeline de Pedidos</a>
+            <a href="{% url 'shopping:admin_catalogo' %}" class="block rounded-xl px-3 py-2 bg-slate-100 text-slate-900 font-semibold">Catálogo</a>
+            <a href="{% url 'shopping:import_products_csv' %}" class="block rounded-xl px-3 py-2 font-semibold text-slate-700 hover:bg-slate-100">Importar CSV</a>
+        </nav>
+    </aside>
 
-    <div class="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <!-- Seção: Templates Públicos -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 class="text-xl font-black uppercase text-slate-500 mb-6 flex items-center gap-2">
-                📋 Templates Escolares <span class="bg-slate-100 px-2 py-0.5 rounded text-xs">{{ templates.count }}</span>
-            </h2>
-            <div class="flex flex-col gap-4">
+    <main class="flex-1 p-6">
+        <header class="mb-6 flex flex-col md:flex-row md:items-center md:justify-between gap-3">
+            <div>
+                <h2 class="text-3xl font-bold text-slate-900 mb-1">Catálogo de Itens</h2>
+                <p class="text-sm text-slate-500">Selecione e combine elementos de papelaria para criar templates de pedidos.</p>
+            </div>
+            <div class="flex gap-2">
+                <a href="{% url 'shopping:import_products_csv' %}" class="btn btn-primary">Importar CSV</a>
+                <a href="{% url 'shopping:admin_dashboard' %}" class="btn btn-ghost">Dashboard</a>
+            </div>
+        </header>
+
+        <section class="grid grid-cols-1 xl:grid-cols-4 gap-4 mb-6">
+            <div class="card bg-slate-100 border-0 shadow-sm">
+                <p class="text-xs uppercase tracking-widest text-slate-500">Total de Itens</p>
+                <p class="text-2xl font-bold text-slate-900">{{ products.count }}</p>
+            </div>
+            <div class="card bg-slate-100 border-0 shadow-sm">
+                <p class="text-xs uppercase tracking-widest text-slate-500">Templates</p>
+                <p class="text-2xl font-bold text-slate-900">{{ templates.count }}</p>
+            </div>
+        </section>
+
+        <section class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
+            {% for product in products %}
+            <article class="card hover:ring-1 hover:ring-slate-200">
+                <div class="flex justify-between items-start gap-2">
+                    <span class="text-xs font-semibold uppercase tracking-wider text-slate-500">{{ product.category }}</span>
+                    <span class="text-xs font-bold text-green-600">R$ {{ product.price }}</span>
+                </div>
+                <h3 class="mt-2 text-lg font-bold text-slate-900 leading-tight">{{ product.name }}</h3>
+                <p class="mt-2 text-sm text-slate-600">Estoque: <strong>{{ product.stock }}</strong></p>
+                {% if product.barcode %}<p class="mt-1 text-xs text-slate-400">SKU: {{ product.barcode }}</p>{% endif %}
+            </article>
+            {% empty %}
+            <div class="col-span-full rounded-2xl bg-white border border-slate-200 p-6 text-center">
+                <p class="text-slate-500">Nenhum produto encontrado. Importe via CSV ou adicione no admin do Django.</p>
+            </div>
+            {% endfor %}
+        </section>
+
+        <section class="mt-8 rounded-2xl bg-gradient-to-r from-slate-100 to-white p-5 border border-slate-200">
+            <h4 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-2">Templates Escolares</h4>
+            <div class="space-y-3">
                 {% for t in templates %}
-                <div class="p-4 bg-slate-50 rounded-xl border border-slate-100 flex justify-between items-center">
+                <div class="rounded-xl bg-white border border-slate-200 p-4 flex items-center justify-between">
                     <div>
-                        <h3 class="font-bold text-slate-800">{{ t.school }}</h3>
-                        <p class="text-xs text-slate-500">{{ t.grade }}</p>
+                        <p class="font-semibold text-slate-900">{{ t.school }} ({{ t.grade }})</p>
+                        <p class="text-xs text-slate-500">Criado: {{ t.created_at|date:'d/m/Y' }}</p>
                     </div>
                     <div class="flex gap-2">
-                        <a href="{% url 'list_qrcode' t.uuid %}" class="bg-white p-2 rounded-lg border border-slate-200 hover:shadow-sm transition">
-                            📷 QR Code
-                        </a>
-                        <a href="{% url 'list_detail' t.uuid %}" class="bg-slate-800 text-white p-2 px-4 rounded-lg text-sm font-bold hover:bg-slate-900 transition">
-                            Ver Itens
-                        </a>
+                        <a href="{% url 'shopping:list_qrcode' t.uuid %}" class="btn btn-xs btn-ghost">QR Code</a>
+                        <a href="{% url 'shopping:list_detail' t.uuid %}" class="btn btn-xs btn-primary">Ver</a>
                     </div>
                 </div>
                 {% empty %}
-                <p class="text-sm text-slate-400 italic">Nenhum template público cadastrado.</p>
+                <p class="text-sm text-slate-500">Sem templates disponíveis.</p>
                 {% endfor %}
             </div>
-        </div>
+        </section>
 
-        <!-- Seção: Produtos (Resumo) -->
-        <div class="bg-white p-6 rounded-2xl shadow-sm border border-slate-200">
-            <h2 class="text-xl font-black uppercase text-slate-500 mb-6 flex items-center gap-2">
-                📦 Catálogo de Produtos <span class="bg-slate-100 px-2 py-0.5 rounded text-xs">{{ products.count }}</span>
-            </h2>
-            <div class="overflow-hidden rounded-xl border border-slate-100">
-                <table class="w-full text-left text-sm">
-                    <thead class="bg-slate-50 text-slate-500 font-bold">
-                        <tr>
-                            <th class="px-4 py-3">Nome</th>
-                            <th class="px-4 py-3">Preço</th>
-                            <th class="px-4 py-3">Estoque</th>
-                        </tr>
-                    </thead>
-                    <tbody class="divide-y divide-slate-100">
-                        {% for p in products|slice:":10" %}
-                        <tr class="hover:bg-slate-50 transition">
-                            <td class="px-4 py-3 text-slate-800 font-medium">{{ p.name }}</td>
-                            <td class="px-4 py-3 text-green-600 font-bold">R$ {{ p.price }}</td>
-                            <td class="px-4 py-3 text-slate-500">{{ p.stock }} un</td>
-                        </tr>
-                        {% endfor %}
-                    </tbody>
-                </table>
-                {% if products.count > 10 %}
-                <div class="p-3 bg-slate-50 text-center">
-                    <p class="text-xs text-slate-400">Exibindo os primeiros 10 produtos. Use o admin do Django para gestão completa.</p>
-                </div>
-                {% endif %}
-            </div>
-        </div>
-    </div>
+    </main>
 </div>
 {% endblock %}

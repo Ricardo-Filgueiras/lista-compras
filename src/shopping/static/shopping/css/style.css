@@ -2,20 +2,41 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  /* Colors - Slate-based Palette */
-  --bg: #F8FAFC;        /* Slate-50 */
-  --bg-card: #FFFFFF;   /* White */
-  --bg-card-hover: #F1F5F9; /* Slate-100 */
-  --border: #E2E8F0;    /* Slate-200 */
-  --border-strong: #CBD5E1; /* Slate-300 */
-  
+  /* Digital Atelier Palette */
+  --surface: #f7f9fb;
+  --surface-container-low: #f0f4f7;
+  --surface-container-lowest: #ffffff;
+  --surface-container-high: #e1e9ee;
+  --surface-tint: rgba(86, 94, 116, 0.05);
+
+  --bg: var(--surface);
+  --bg-card: var(--surface-container-lowest);
+  --bg-card-hover: #f4f7fb;
+  --border: #dce4ec; 
+  --border-strong: #c4d2df;
+
   /* Brand Colors */
-  --primary: #F97316;   /* Orange-500 (Stationery/Creative) */
-  --primary-hover: #EA580C;
-  --secondary: #2563EB; /* Blue-600 (Smart Swap) */
-  --success: #16A34A;   /* Green-600 */
-  --danger: #EF4444;    /* Red-500 */
-  
+  --primary: #565e74;
+  --primary-hover: #4a5268;
+  --primary-dim: #a4b2cd;
+  --secondary: #2563eb;
+  --success: #16a34a;
+  --danger: #ef4444;
+
+  /* Text */
+  --text: #2a3439;
+  --text-muted: #64748b;
+  --text-dim: #94a3b8;
+
+  --radius: 16px;
+  --radius-sm: 12px;
+  --radius-lg: 24px;
+  --shadow-sm: 0 4px 16px rgba(86,94,116,0.08);
+  --shadow: 0 10px 40px -10px rgba(86,94,116,0.08);
+  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  font-family: 'Inter', system-ui, -apple-system, sans-serif;
+}  
   /* Text */
   --text: #0F172A;      /* Slate-900 */
   --text-muted: #64748B; /* Slate-500 */
@@ -47,10 +68,19 @@ a:hover { color: var(--primary-hover); }
 
 /* ─────── Navbar ─────── */
 .navbar {
-  background: rgba(255, 255, 255, 0.8);
-  backdrop-filter: blur(12px);
-  border-bottom: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.55);
+  backdrop-filter: blur(16px);
+  border-bottom: 1px solid rgba(132, 149, 171, 0.2);
   position: sticky; top: 0; z-index: 100;
+}
+
+/* Glass-morphism layer */
+.glass {
+  background: rgba(255, 255, 255, 0.45);
+  backdrop-filter: blur(14px);
+  border: 1px solid rgba(220, 228, 236, 0.4);
+  box-shadow: 0 10px 40px -10px rgba(86, 94, 116, 0.12);
+  border-radius: var(--radius);
 }
 .nav-container {
   max-width: 800px; margin: 0 auto; padding: 0 1.25rem;
@@ -96,11 +126,22 @@ a:hover { color: var(--primary-hover); }
 
 /* ─────── Cards (General) ─────── */
 .card {
-  background: var(--bg-card);
-  border: 1px solid var(--border);
+  background: var(--surface-container-lowest);
+  border: 1px solid rgba(205, 210, 222, 0.5);
   border-radius: var(--radius);
   padding: 1.25rem;
   box-shadow: var(--shadow-sm);
+  transition: transform var(--transition), box-shadow var(--transition), border-color var(--transition);
+}
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 20px 40px -15px rgba(86, 94, 116, 0.16);
+  border-color: rgba(196, 209, 226, 0.8);
+}
+
+.card-no-border {
+  border: none;
+  background: var(--surface-container-low);
 }
 
 /* ─────── Compact Item Rows ─────── */

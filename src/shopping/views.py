@@ -355,12 +355,29 @@ def list_pdf(request, uuid):
 
 @login_required
 def list_clone(request, uuid):
-    template = get_object_or_404(ShoppingList, uuid=uuid, is_template=True)
+    # Permite clonar qualquer lista válida (não somente aquelas marcadas como template),
+    # para suportar o uso de links gerados pela tela de compartilhamento.
+    template = get_object_or_404(ShoppingList, uuid=uuid)
+
     if request.method == 'POST':
-        nova = ShoppingList.objects.create(user=request.user, name=f"Cópia de {template.school}", school=template.school, grade=template.grade)
+        nova = ShoppingList.objects.create(
+            user=request.user,
+            name=f"Cópia de {template.school}",
+            school=template.school,
+            grade=template.grade,
+            is_template=False,
+        )
         for item in template.items.all():
-            ShoppingItem.objects.create(shopping_list=nova, product=item.product, quantity=item.quantity, name=item.name, price=item.price, category=item.category)
+            ShoppingItem.objects.create(
+                shopping_list=nova,
+                product=item.product,
+                quantity=item.quantity,
+                name=item.name,
+                price=item.price,
+                category=item.category,
+            )
         return redirect('shopping:list_detail', uuid=nova.uuid)
+
     return render(request, 'shopping/list_clone_confirm.html', {'list': template})
 
 @login_required
@@ -394,3 +411,14 @@ def list_delete(request, uuid):
         lista.delete()
         return redirect('shopping:index')
     return render(request, 'shopping/list_confirm_delete.html', {'list': lista})
+
+@login_required
+def shared_list_remove(request, uuid):
+    """Remove o compartilhamento da lista para o usuário atual (não deleta a lista original)."""
+    share = ShoppingShare.objects.filter(shopping_list__uuid=uuid, shared_with=request.user).first()
+    if share:
+        share.delete()
+        messages.success(request, 'Lista removida da sua área compartilhada.')
+    else:
+        messages.error(request, 'Compartilhamento não encontrado.')
+    return redirect('shopping:index')

@@ -84,14 +84,23 @@
   {% endif %}
 
   {% for lst in shared_lists %}
-    <a href="{% url 'shopping:list_detail' lst.uuid %}" class="card" style="text-decoration: none; color: inherit; transition: all 0.2s; border-radius: 20px; padding: 1.5rem; border-style: dashed;">
+    <div class="card" style="text-decoration: none; color: inherit; transition: all 0.2s; border-radius: 20px; padding: 1.5rem; border-style: dashed; position: relative; display: flex; flex-direction: column; gap: 1rem;">
       <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
         <div style="width: 48px; height: 48px; background: rgba(37, 99, 235, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🤝</div>
+        <!-- Botão Remover Compartilhamento -->
+        <form action="{% url 'shopping:shared_list_remove' lst.uuid %}" method="post" onsubmit="return confirm('Remover esta lista compartilhada da sua área?')" style="display: inline-block;">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-ghost" style="color: var(--danger); border: none; padding: 4px; font-size: 1.1rem; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;" title="Remover Lista Compartilhada">
+                🗑️
+            </button>
+        </form>
       </div>
-      <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">{{ lst.name }}</h3>
-      <p style="color: var(--text-muted); font-size: 0.85rem;">Compartilhada por <strong>{{ lst.user.username }}</strong></p>
-      <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-weight: 700; color: var(--secondary);">Ver lista →</div>
-    </a>
+      <a href="{% url 'shopping:list_detail' lst.uuid %}" style="text-decoration: none; color: inherit;">
+        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">{{ lst.name }}</h3>
+        <p style="color: var(--text-muted); font-size: 0.85rem;">Compartilhada por <strong>{{ lst.user.username }}</strong></p>
+        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-weight: 700; color: var(--secondary);">Ver lista →</div>
+      </a>
+    </div>
   {% endfor %}
 
   {% if not own_lists and not shared_lists %}

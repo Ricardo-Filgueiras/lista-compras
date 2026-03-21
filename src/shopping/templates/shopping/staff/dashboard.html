@@ -1,55 +1,92 @@
+
 {% extends 'shopping/base.html' %}
 
 {% block content %}
-<div class="container mx-auto px-4 py-8">
-    <div class="flex justify-between items-center mb-8">
-        <h1 class="text-3xl font-bold text-slate-900">Pipeline de Pedidos</h1>
-        <div class="flex gap-4">
-            <a href="{% url 'admin_catalogo' %}" class="bg-slate-200 text-slate-700 px-4 py-2 rounded-lg hover:bg-slate-300 transition">
-                Gerir Catálogo
-            </a>
-            <a href="{% url 'import_products_csv' %}" class="bg-orange-500 text-white px-4 py-2 rounded-lg hover:bg-orange-600 transition">
-                Importar CSV
-            </a>
+<div class="min-h-screen bg-slate-50 flex flex-col">
+    <!-- Topbar -->
+    <header class="w-full bg-white/90 backdrop-blur-md border-b border-slate-200 px-8 py-4 flex items-center justify-between">
+        <div class="flex items-center gap-6">
+            <span class="text-2xl font-extrabold tracking-tight text-slate-900">Pipeline de Pedidos</span>
+            <input type="text" placeholder="Buscar pedidos..." class="px-4 py-2 rounded-lg bg-slate-100 border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30" style="min-width:220px;">
         </div>
-    </div>
+        <div class="flex items-center gap-4">
+            <a href="{% url 'shopping:import_products_csv' %}" class="btn btn-ghost flex items-center gap-2"><span>Importar CSV</span></a>
+            <a href="#" class="btn btn-primary flex items-center gap-2"><span>Novo Template</span></a>
+            <div class="flex items-center gap-2">
+                <span class="text-right text-xs text-slate-500 leading-tight">Staff Atelier<br><span class="font-bold text-slate-900">Operacional</span></span>
+                <span class="inline-block w-10 h-10 rounded-full bg-slate-200 border border-slate-300 flex items-center justify-center font-bold text-slate-500">SA</span>
+            </div>
+        </div>
+    </header>
 
-    <div class="flex flex-col lg:flex-row gap-6 overflow-x-auto pb-4">
-        <!-- Coluna: Novos Pedidos -->
-        <div class="flex-1 min-w-[300px] bg-slate-100 p-4 rounded-xl">
-            <h2 class="font-black uppercase text-slate-500 mb-4 flex items-center gap-2">
-                🔒 Fechados <span class="bg-slate-200 px-2 py-0.5 rounded text-xs">{{ listas_fechadas.count }}</span>
-            </h2>
-            <div id="col-fechada" class="flex flex-col gap-4">
-                {% for lista in listas_fechadas %}
-                    {% include 'shopping/staff/components/shoppinglist_row.html' with lista=lista %}
-                {% endfor %}
+    <main class="flex-1 w-full max-w-7xl mx-auto px-8 py-8">
+        <h2 class="text-2xl font-bold text-slate-900 mb-1">Status da Produção</h2>
+        <p class="text-slate-500 mb-8">Gerencie o fluxo de pedidos em tempo real.</p>
+
+        <!-- Status Cards -->
+        <div class="flex flex-wrap gap-4 mb-8">
+            <div class="flex-1 min-w-[180px] bg-slate-100 rounded-xl p-4 flex flex-col items-start">
+                <span class="text-xs font-bold uppercase text-slate-500 mb-1">Fechado</span>
+                <span class="text-2xl font-extrabold text-slate-900">{{ listas_fechadas.count }}</span>
+            </div>
+            <div class="flex-1 min-w-[180px] bg-yellow-50 rounded-xl p-4 flex flex-col items-start">
+                <span class="text-xs font-bold uppercase text-yellow-600 mb-1">Em Separação</span>
+                <span class="text-2xl font-extrabold text-yellow-700">{{ listas_separacao.count }}</span>
+            </div>
+            <div class="flex-1 min-w-[180px] bg-green-50 rounded-xl p-4 flex flex-col items-start">
+                <span class="text-xs font-bold uppercase text-green-600 mb-1">Pronto</span>
+                <span class="text-2xl font-extrabold text-green-700">{{ listas_prontas.count }}</span>
             </div>
         </div>
 
-        <!-- Coluna: Em Separação -->
-        <div class="flex-1 min-w-[300px] bg-blue-50 p-4 rounded-xl border border-blue-100">
-            <h2 class="font-black uppercase text-blue-500 mb-4 flex items-center gap-2">
-                📦 Em Separação <span class="bg-blue-100 px-2 py-0.5 rounded text-xs">{{ listas_separacao.count }}</span>
-            </h2>
-            <div id="col-separacao" class="flex flex-col gap-4">
-                {% for lista in listas_separacao %}
-                    {% include 'shopping/staff/components/shoppinglist_row.html' with lista=lista %}
-                {% endfor %}
+        <!-- Pipeline Columns -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- Fechado -->
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="w-2 h-2 rounded-full bg-slate-400"></span>
+                    <span class="font-bold text-slate-700 uppercase text-xs tracking-widest">Fechado</span>
+                    <span class="ml-auto text-xs text-slate-400">{{ listas_fechadas.count }}</span>
+                </div>
+                <div class="flex flex-col gap-4">
+                    {% for lista in listas_fechadas %}
+                        {% include 'shopping/staff/components/shoppinglist_row.html' with lista=lista %}
+                    {% empty %}
+                        <div class="bg-white border border-slate-100 rounded-xl p-4 text-center text-slate-400">Nenhum pedido fechado.</div>
+                    {% endfor %}
+                </div>
+            </div>
+            <!-- Em Separação -->
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="w-2 h-2 rounded-full bg-yellow-400"></span>
+                    <span class="font-bold text-yellow-700 uppercase text-xs tracking-widest">Em Separação</span>
+                    <span class="ml-auto text-xs text-yellow-500">{{ listas_separacao.count }}</span>
+                </div>
+                <div class="flex flex-col gap-4">
+                    {% for lista in listas_separacao %}
+                        {% include 'shopping/staff/components/shoppinglist_row.html' with lista=lista %}
+                    {% empty %}
+                        <div class="bg-white border border-slate-100 rounded-xl p-4 text-center text-slate-400">Nenhum pedido em separação.</div>
+                    {% endfor %}
+                </div>
+            </div>
+            <!-- Pronto -->
+            <div>
+                <div class="flex items-center gap-2 mb-4">
+                    <span class="w-2 h-2 rounded-full bg-green-400"></span>
+                    <span class="font-bold text-green-700 uppercase text-xs tracking-widest">Pronto</span>
+                    <span class="ml-auto text-xs text-green-500">{{ listas_prontas.count }}</span>
+                </div>
+                <div class="flex flex-col gap-4">
+                    {% for lista in listas_prontas %}
+                        {% include 'shopping/staff/components/shoppinglist_row.html' with lista=lista %}
+                    {% empty %}
+                        <div class="bg-white border border-slate-100 rounded-xl p-4 text-center text-slate-400">Nenhum pedido pronto.</div>
+                    {% endfor %}
+                </div>
             </div>
         </div>
-
-        <!-- Coluna: Prontos -->
-        <div class="flex-1 min-w-[300px] bg-green-50 p-4 rounded-xl border border-green-100">
-            <h2 class="font-black uppercase text-green-500 mb-4 flex items-center gap-2">
-                ✅ Prontos <span class="bg-green-100 px-2 py-0.5 rounded text-xs">{{ listas_prontas.count }}</span>
-            </h2>
-            <div id="col-pronto" class="flex flex-col gap-4">
-                {% for lista in listas_prontas %}
-                    {% include 'shopping/staff/components/shoppinglist_row.html' with lista=lista %}
-                {% endfor %}
-            </div>
-        </div>
-    </div>
+    </main>
 </div>
 {% endblock %}

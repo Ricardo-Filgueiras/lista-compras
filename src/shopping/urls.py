@@ -13,6 +13,7 @@ urlpatterns = [
     path('<uuid:uuid>/excluir/', views.list_delete, name='list_delete'),
     path('<uuid:uuid>/compartilhar/', views.list_share, name='list_share'),
     path('<uuid:uuid>/compartilhar/<int:share_id>/remover/', views.share_remove, name='share_remove'),
+    path('<uuid:uuid>/remover-compartilhada/', views.shared_list_remove, name='shared_list_remove'),
     path('<uuid:uuid>/orcamento/', views.list_budget, name='list_budget'),
     path('<uuid:uuid>/totais/', views.list_totals, name='list_totals'),
     path('<uuid:uuid>/qrcode/', views.list_qrcode, name='list_qrcode'),

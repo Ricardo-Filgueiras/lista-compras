@@ -1,5 +1,7 @@
 # Funcionalidades Detalhadas - Papelaria Criativa
 
+O WebApp foi projetado para oferecer uma experiência de "Aplicativo Nativo" no navegador, utilizando **HTMX** para interações fluidas.
+
 ## 1. Experiência do Cliente (B2C)
 - **Gestão Dinâmica de Itens:** Atualização instantânea de quantidades e preços via HTMX.
 - **Checkout e Desconto PIX:** Ao concluir o pedido, o cliente visualiza o valor total e o desconto de 10% para PIX.
@@ -19,3 +21,12 @@
 ## 4. Segurança e Permissões
 - **Staff-Only:** Áreas administrativas protegidas por decoradores `@staff_member_required`.
 - **Trava de Edição:** Listas com status `fechada` ou superior são bloqueadas para edição pelo cliente, garantindo integridade logística.
+
+## 5. Gestão Dinâmica de Itens
+- **Controle de Quantidade (+/-):** Alteração instantânea da quantidade no card do produto com atualização do preço total e do resumo do pedido (via evento `update-totals`).
+- **Remoção Instantânea:** Botão de lixeira com confirmação para excluir itens sem recarregar a página.
+- **Destaque de Categoria:** Itens rotulados por categoria (ex: PAPÉIS, ESCRITA, CADERNOS).
+
+## 6. Fluxos de Compartilhamento
+- **Edição Colaborativa (`/entrar/`):** Link exclusivo para compartilhar com membros da família. Permite que múltiplos usuários editem a mesma lista de compras.
+- **Link de Template (`/usar-template/`):** Mecanismo de clonagem que permite a um cliente criar sua própria lista baseada em um modelo da papelaria. Inclui página de confirmação para evitar cópias acidentais.
