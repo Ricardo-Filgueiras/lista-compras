@@ -89,6 +89,14 @@ class ShoppingItem(models.Model):
     def get_subtotal(self):
         return self.get_item_price() * self.quantity
 
+    @property
+    def quantity_value(self):
+        return self.quantity
+
+    @property
+    def total_price(self):
+        return self.get_subtotal()
+
 class ShoppingShare(models.Model):
     shopping_list = models.ForeignKey(ShoppingList, on_delete=models.CASCADE, related_name='shares')
     shared_with = models.ForeignKey(User, on_delete=models.CASCADE, related_name='shared_lists')

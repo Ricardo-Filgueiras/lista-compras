@@ -6,20 +6,14 @@ from .models import ShoppingList, ShoppingItem, ShoppingShare, Product
 class ShoppingListForm(forms.ModelForm):
     class Meta:
         model = ShoppingList
-        fields = ['name', 'budget', 'student_name', 'school', 'grade']
+        fields = ['name', 'budget']
         labels = {
             'name': 'Nome da lista', 
             'budget': 'Orçamento (R$)',
-            'student_name': 'Nome do Estudante',
-            'school': 'Escola',
-            'grade': 'Série/Ano'
         }
         widgets = {
             'name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ex: Material Escolar 2026'}),
             'budget': forms.NumberInput(attrs={'class': 'form-input', 'placeholder': '0,00', 'step': '0.01'}),
-            'student_name': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Nome do aluno'}),
-            'school': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Nome da escola'}),
-            'grade': forms.TextInput(attrs={'class': 'form-input', 'placeholder': 'Ex: 1º Ano EF'}),
         }
 
 
