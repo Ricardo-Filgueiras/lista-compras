@@ -34,22 +34,6 @@
   --shadow-sm: 0 4px 16px rgba(86,94,116,0.08);
   --shadow: 0 10px 40px -10px rgba(86,94,116,0.08);
   --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-
-  font-family: 'Inter', system-ui, -apple-system, sans-serif;
-}  
-  /* Text */
-  --text: #0F172A;      /* Slate-900 */
-  --text-muted: #64748B; /* Slate-500 */
-  --text-dim: #94A3B8;  /* Slate-400 */
-  
-  /* Layout */
-  --radius: 16px;
-  --radius-sm: 12px;
-  --radius-lg: 24px;
-  --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
-  --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
-  --transition: 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  
   font-family: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
@@ -92,6 +76,12 @@ a:hover { color: var(--primary-hover); }
   letter-spacing: -0.02em;
 }
 .nav-icon { font-size: 1.4rem; color: var(--primary); }
+
+.nav-user {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
 
 /* ─────── Main ─────── */
 .main-content { 
@@ -202,7 +192,7 @@ a:hover { color: var(--primary-hover); }
   border-radius: 8px;
 }
 .btn-qty:hover { background: var(--border); }
-.qty-value {
+ qty-value {
   width: 36px; text-align: center;
   font-size: 0.9rem; font-weight: 700;
 }
@@ -295,5 +285,15 @@ a:hover { color: var(--primary-hover); }
 
   .btn-primary {
     padding: 0.85rem 1.25rem;
+  }
+
+  .nav-container {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.5rem;
+    height: auto;
+  }
+  .nav-user {
+    justify-content: flex-end;
   }
 }

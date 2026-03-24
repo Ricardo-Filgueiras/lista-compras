@@ -21,6 +21,12 @@
       {% if user.is_authenticated %}
       <div class="nav-user">
         <span class="nav-greeting">Olá, <strong>{{ user.username }}</strong></span>
+          <!-- Link para admin, visível apenas para staff -->
+          {% if user.is_staff %}
+            <a href="{% url 'shopping:admin_catalogo' %}" class="btn btn-ghost btn-sm" title="Acesso ao painel admin" style="margin-left: 0.5rem;">
+              Admin
+            </a>
+          {% endif %}
         <form method="post" action="{% url 'logout' %}">
           {% csrf_token %}
           <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
