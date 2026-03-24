@@ -153,6 +153,8 @@ def import_products_csv(request):
     """Importação massiva de produtos."""
     if request.method == 'POST':
         csv_file = request.FILES.get('file')
+        list_name = request.POST.get('list_name')
+        
         if not csv_file:
             messages.error(request, 'Nenhum arquivo enviado.')
             return redirect('shopping:admin_catalogo')
@@ -163,8 +165,9 @@ def import_products_csv(request):
             next(io_string) # Pular header
 
             count = 0
+            csv_products = []
             for row in csv.reader(io_string, delimiter=',', quotechar='"'):
-                Product.objects.update_or_create(
+                product, _ = Product.objects.update_or_create(
                     name=row[0],
                     defaults={
                         'price': Decimal(row[1]),
@@ -174,8 +177,29 @@ def import_products_csv(request):
                         'image_url': row[5] if len(row) > 5 else None,
                     }
                 )
+                csv_products.append(product)
                 count += 1
-            messages.success(request, f'{count} produtos processados com sucesso!')
+                
+            if list_name and list_name.strip():
+                template_name = list_name.strip()
+                template_list = ShoppingList.objects.create(
+                    user=request.user,
+                    name=template_name,
+                    is_template=True,
+                    school=template_name 
+                )
+                for prod in csv_products:
+                    ShoppingItem.objects.create(
+                        shopping_list=template_list,
+                        product=prod,
+                        name=prod.name,
+                        quantity=1,
+                        price=prod.price,
+                        category=prod.category
+                    )
+                messages.success(request, f'{count} produtos armazenados e novo Template Institucional "{template_name}" criado com sucesso!')
+            else:
+                messages.success(request, f'{count} produtos processados e atualizados no catálogo!')
         except Exception as e:
             messages.error(request, f'Erro ao processar CSV: {e}')
             
@@ -399,9 +423,16 @@ def list_budget(request, uuid):
 def list_edit(request, uuid):
     lista = get_object_or_404(ShoppingList, uuid=uuid, user=request.user)
     form = ShoppingListForm(request.POST or None, instance=lista)
-    if form.is_valid():
-        form.save()
-        return redirect('shopping:list_detail', uuid=uuid)
+    if request.method == 'POST':
+        # Permite bloquear a lista via POST direto do footer
+        if request.POST.get('is_locked') == 'True':
+            lista.is_locked = True
+            lista.save()
+            return redirect('shopping:list_detail', uuid=uuid)
+            
+        if form.is_valid():
+            form.save()
+            return redirect('shopping:list_detail', uuid=uuid)
     return render(request, 'shopping/list_form.html', {'form': form, 'list': lista})
 
 @login_required
