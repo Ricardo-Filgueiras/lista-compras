@@ -123,9 +123,9 @@ def admin_dashboard(request):
     listas = ShoppingList.objects.filter(is_template=False).order_by('-created_at')
     
     context = {
-        'listas_fechadas': listas.filter(status='fechada'),
-        'listas_separacao': listas.filter(status='separacao'),
-        'listas_prontas': listas.filter(status='pronto'),
+        'listas': listas,
+        'qtd_finalizadas': listas.filter(is_locked=True).count(),
+        'qtd_nao_finalizadas': listas.filter(is_locked=False).count(),
     }
     return render(request, 'shopping/staff/dashboard.html', context)
 
@@ -427,6 +427,7 @@ def list_edit(request, uuid):
         # Permite bloquear a lista via POST direto do footer
         if request.POST.get('is_locked') == 'True':
             lista.is_locked = True
+            lista.status = 'fechada'  # Atualiza o status para ser capturado no painel do administrador!
             lista.save()
             return redirect('shopping:list_detail', uuid=uuid)
             

@@ -163,157 +163,122 @@
             </div>
         </div>
 
-        <!-- Kanban Board -->
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-8 items-start">
-            
-            <!-- Column: Fechado -->
-            <div class="flex flex-col gap-4">
-                <div class="flex items-center justify-between px-2 mb-2">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-slate-400"></span>
-                        <h3 class="font-bold text-slate-700 tracking-wide uppercase text-xs">Fechado</h3>
-                        <span class="ml-1 px-2 py-0.5 bg-slate-200 text-slate-600 rounded-full text-[10px] font-bold">{{ listas_fechadas|length }}</span>
-                    </div>
+        <!-- Top Metrics (2 Alternatives) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8 mt-2">
+            <!-- Listas Não Finalizadas -->
+            <div class="bg-surface-container-lowest border border-amber-200 p-8 rounded-2xl flex items-center justify-between shadow-[0_10px_30px_-10px_rgba(86,94,116,0.06)] hover:shadow-lg transition-shadow">
+                <div>
+                    <h3 class="text-4xl font-extrabold text-amber-700 font-['Manrope'] mb-2">{{ qtd_nao_finalizadas }}</h3>
+                    <p class="font-bold text-amber-900/60 uppercase tracking-widest text-[11px]">Listas Não Finalizadas</p>
                 </div>
-                <div class="space-y-4">
-                    {% for lista in listas_fechadas %}
-                    <div class="bg-surface-container-lowest p-5 rounded-xl shadow-[0_4px_20px_-4px_rgba(86,94,116,0.06)] group hover:shadow-[0_10px_30px_-10px_rgba(86,94,116,0.12)] transition-all">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <span class="text-[10px] font-bold text-primary tracking-widest uppercase">ID #{{ lista.uuid|stringformat:"s"|slice:":6" }}</span>
-                                <a href="{% url 'shopping:list_detail' lista.uuid %}" target="_blank" class="font-bold text-primary mt-1 hover:underline block" title="Ver detalhes da lista">{{ lista.name }}</a>
-                            </div>
-                            <span class="text-[10px] font-medium text-on-surface-variant flex items-center gap-1">
-                                <span class="material-symbols-outlined text-[14px]" data-icon="schedule">schedule</span> {{ lista.updated_at|time:"H:i" }}
-                            </span>
-                        </div>
-                        <div class="flex items-center gap-4 mb-5">
-                            <p class="text-xs font-medium text-on-surface-variant">{{ lista.items.count }} Itens</p>
-                        </div>
-                        <div class="flex justify-between items-center">
-                            <span class="px-3 py-1 bg-surface-container text-on-surface-variant rounded-full text-[10px] font-bold tracking-tight">R$ {{ lista.get_total|floatformat:2 }}</span>
-                            <form hx-post="{% url 'shopping:update_status_htmx' lista.uuid %}" hx-swap="none" style="display:inline;">
-                                {% csrf_token %}
-                                <input type="hidden" name="status" value="separacao">
-                                <button type="submit" class="p-1.5 rounded-lg text-primary bg-primary-container/20 group-hover:bg-primary group-hover:text-white transition-all" title="Mover para Separação" onclick="setTimeout(() => window.location.reload(), 300)">
-                                    <span class="material-symbols-outlined text-lg" data-icon="arrow_forward">arrow_forward</span>
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="text-center p-4 text-slate-400 text-sm">Nenhum pedido nesta etapa.</div>
-                    {% endfor %}
+                <div class="w-16 h-16 rounded-full bg-amber-50 text-amber-500 flex items-center justify-center border border-amber-100">
+                    <span class="material-symbols-outlined text-3xl" data-icon="pending_actions">pending_actions</span>
                 </div>
             </div>
 
-            <!-- Column: Em Separação -->
-            <div class="flex flex-col gap-4">
-                <div class="flex items-center justify-between px-2 mb-2">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
-                        <h3 class="font-bold text-slate-700 tracking-wide uppercase text-xs">Em Separação</h3>
-                        <span class="ml-1 px-2 py-0.5 bg-amber-100 text-amber-700 rounded-full text-[10px] font-bold">{{ listas_separacao|length }}</span>
-                    </div>
+            <!-- Listas Finalizadas -->
+            <div class="bg-surface-container-lowest border border-emerald-200 p-8 rounded-2xl flex items-center justify-between shadow-[0_10px_30px_-10px_rgba(86,94,116,0.06)] hover:shadow-lg transition-shadow">
+                <div>
+                    <h3 class="text-4xl font-extrabold text-emerald-700 font-['Manrope'] mb-2">{{ qtd_finalizadas }}</h3>
+                    <p class="font-bold text-emerald-900/60 uppercase tracking-widest text-[11px]">Listas Finalizadas</p>
                 </div>
-                <div class="space-y-4">
-                    {% for lista in listas_separacao %}
-                    <div class="bg-surface-container-lowest p-5 rounded-xl border-l-4 border-amber-400 shadow-[0_10px_30px_-10px_rgba(86,94,116,0.12)]">
-                        <div class="flex justify-between items-start mb-2">
-                            <div>
-                                <span class="text-[10px] font-bold text-amber-600 tracking-widest uppercase">ID #{{ lista.uuid|stringformat:"s"|slice:":6" }}</span>
-                                <a href="{% url 'shopping:list_detail' lista.uuid %}" target="_blank" class="font-bold text-primary mt-1 hover:underline block" title="Ver detalhes da lista">{{ lista.name }}</a>
-                            </div>
-                        </div>
-                        <p class="text-xs text-on-surface-variant mb-4">Total: {{ lista.items.count }} Itens</p>
-                        
-                        <div class="flex justify-between gap-2 mt-2">
-                            <a href="{% url 'shopping:generate_picking_pdf' lista.uuid %}" target="_blank" class="flex-1 text-center py-2 bg-amber-50 text-amber-700 rounded-lg text-xs font-bold border border-amber-100/50 hover:bg-amber-100 transition-colors">
-                                PDF Picking
-                            </a>
-                            <form hx-post="{% url 'shopping:update_status_htmx' lista.uuid %}" hx-swap="none" class="flex-1 flex" onsubmit="setTimeout(() => window.location.reload(), 300)">
-                                {% csrf_token %}
-                                <input type="hidden" name="status" value="pronto">
-                                <button type="submit" class="w-full text-center py-2 bg-gradient-to-r from-amber-400 to-amber-500 text-white rounded-lg text-xs font-bold shadow-md hover:opacity-90 active:scale-95 transition-all">
-                                    Concluir
-                                </button>
-                            </form>
-                        </div>
-                    </div>
-                    {% empty %}
-                    <div class="text-center p-4 text-slate-400 text-sm">Nenhum pedido nesta etapa.</div>
-                    {% endfor %}
+                <div class="w-16 h-16 rounded-full bg-emerald-50 text-emerald-500 flex items-center justify-center border border-emerald-100">
+                    <span class="material-symbols-outlined text-3xl" data-icon="task_alt">task_alt</span>
                 </div>
             </div>
-
-            <!-- Column: Pronto -->
-            <div class="flex flex-col gap-4">
-                <div class="flex items-center justify-between px-2 mb-2">
-                    <div class="flex items-center gap-2">
-                        <span class="w-2.5 h-2.5 rounded-full bg-emerald-500"></span>
-                        <h3 class="font-bold text-slate-700 tracking-wide uppercase text-xs">Pronto</h3>
-                        <span class="ml-1 px-2 py-0.5 bg-emerald-100 text-emerald-700 rounded-full text-[10px] font-bold">{{ listas_prontas|length }}</span>
-                    </div>
-                </div>
-                <div class="space-y-4">
-                    {% for lista in listas_prontas %}
-                    <div class="bg-surface-container-lowest p-5 rounded-xl shadow-[0_4px_20px_-4px_rgba(86,94,116,0.06)] border border-emerald-100">
-                        <div class="flex justify-between items-start mb-4">
-                            <div>
-                                <span class="text-[10px] font-bold text-emerald-600 tracking-widest uppercase">ID #{{ lista.uuid|stringformat:"s"|slice:":6" }}</span>
-                                <a href="{% url 'shopping:list_detail' lista.uuid %}" target="_blank" class="font-bold text-primary mt-1 hover:underline block" title="Ver detalhes da lista">{{ lista.name }}</a>
-                            </div>
-                            <span class="bg-emerald-50 text-emerald-700 p-1 rounded"><span class="material-symbols-outlined text-[18px]" data-icon="check_circle" style="font-variation-settings: 'FILL' 1;">check_circle</span></span>
-                        </div>
-                        <div class="p-3 bg-surface-container-low rounded-lg mb-4 flex items-center justify-between">
-                            <div class="flex items-center gap-3">
-                                <span class="material-symbols-outlined text-primary" data-icon="local_shipping">local_shipping</span>
-                                <span class="text-xs font-bold text-on-surface">Pronto para Retirada</span>
-                            </div>
-                        </div>
-                        <form hx-post="{% url 'shopping:update_status_htmx' lista.uuid %}" hx-swap="none" onsubmit="setTimeout(() => window.location.reload(), 300)">
-                            {% csrf_token %}
-                            <input type="hidden" name="status" value="entregue">
-                            <button type="submit" class="w-full py-2 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-lg text-xs font-bold shadow-md hover:opacity-90 active:scale-95 transition-all">
-                                Registrar Despacho
-                            </button>
-                        </form>
-                    </div>
-                    {% empty %}
-                    <div class="text-center p-4 text-slate-400 text-sm">Nenhum pedido nesta etapa.</div>
-                    {% endfor %}
-                </div>
-            </div>
-
         </div>
 
-        <!-- Dashboard Analytics Bento Grid Segment -->
-        <div class="mt-12 grid grid-cols-1 md:grid-cols-4 gap-6">
-            <div class="md:col-span-2 bg-primary-container/10 p-6 rounded-2xl flex flex-col justify-between">
+        <!-- Histórico Global de Pedidos -->
+        <div class="mt-12 bg-surface-container-lowest rounded-2xl shadow-[0_10px_40px_-10px_rgba(86,94,116,0.08)] border border-slate-100 overflow-hidden">
+            <div class="p-6 border-b border-surface-container-low flex justify-between items-center bg-slate-50/50">
                 <div>
-                    <h4 class="font-headline font-bold text-primary mb-2">Performance do Turno</h4>
-                    <p class="text-on-surface-variant text-sm">Acompanhamento simples do volume.</p>
-                </div>
-                <div class="mt-8 flex items-end gap-1 h-12">
-                    <div class="flex-1 bg-primary/20 rounded-t h-[30%]"></div>
-                    <div class="flex-1 bg-primary/20 rounded-t h-[45%]"></div>
-                    <div class="flex-1 bg-primary/20 rounded-t h-[70%]"></div>
-                    <div class="flex-1 bg-primary/20 rounded-t h-[55%]"></div>
-                    <div class="flex-1 bg-primary/20 rounded-t h-[85%]"></div>
-                    <div class="flex-1 bg-primary rounded-t h-[100%]"></div>
+                    <h3 class="text-xl font-bold font-['Manrope'] text-slate-800 flex items-center gap-2">
+                        <span class="material-symbols-outlined text-primary">history</span>
+                        Histórico Global de Pedidos
+                    </h3>
+                    <p class="text-xs text-on-surface-variant mt-1">Acompanhe todos os pedidos abertos, em processamento e concluídos.</p>
                 </div>
             </div>
-            <div class="bg-surface-container-low p-6 rounded-2xl flex flex-col items-center justify-center text-center">
-                <span class="material-symbols-outlined text-3xl text-secondary mb-2" data-icon="inventory_2">inventory_2</span>
-                <h5 class="text-2xl font-extrabold text-on-surface">{{ listas_prontas|length|add:listas_fechadas|length|add:listas_separacao|length }}</h5>
-                <p class="text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">Pedidos Ativos</p>
-            </div>
-            <div class="bg-gradient-to-br from-slate-800 to-slate-900 p-6 rounded-2xl text-white">
-                <div class="flex justify-between mb-8">
-                    <span class="material-symbols-outlined" data-icon="auto_awesome">auto_awesome</span>
-                    <span class="text-[10px] font-bold border border-white/20 px-2 py-0.5 rounded-full">PRO TIP</span>
-                </div>
-                <p class="text-xs font-medium leading-relaxed opacity-80 italic">"Agrupe pedidos de Kits Escolares para otimizar a separação de cadernos."</p>
+            
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-surface-container-low/50 text-slate-500 text-[10px] uppercase tracking-widest font-bold">
+                            <th class="px-6 py-4 rounded-tl-xl">ID / Data</th>
+                            <th class="px-6 py-4">Cliente / Template Base</th>
+                            <th class="px-6 py-4">Itens</th>
+                            <th class="px-6 py-4">Total (R$)</th>
+                            <th class="px-6 py-4">Status</th>
+                            <th class="px-6 py-4 text-center rounded-tr-xl">Ações</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-surface-container-low">
+                        {% for lista in listas %}
+                        <tr class="hover:bg-slate-50/80 transition-colors group">
+                            <td class="px-6 py-4">
+                                <span class="font-mono text-xs font-bold text-primary block mb-1">#{{ lista.uuid|stringformat:"s"|slice:":8" }}</span>
+                                <span class="text-[10px] text-slate-400 font-medium">{{ lista.created_at|date:"d M Y, H:i" }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-sm font-bold text-slate-800 block">{{ lista.user.username|title }}</span>
+                                <span class="text-xs text-slate-500 truncate max-w-[200px] block" title="{{ lista.name }}">{{ lista.name }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="inline-flex items-center gap-1 text-xs font-bold bg-slate-100 text-slate-600 px-2 py-1 rounded-md">
+                                    <span class="material-symbols-outlined text-[14px]">inventory_2</span>
+                                    {{ lista.items.count }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-sm font-extrabold text-slate-700">R$ {{ lista.get_total|floatformat:2 }}</span>
+                            </td>
+                            <td class="px-6 py-4">
+                                {% if lista.status == 'aberta' %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600 border border-slate-200"><span class="w-1.5 h-1.5 rounded-full bg-slate-400"></span>Em Montagem</span>
+                                {% elif lista.status == 'fechada' %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700 border border-blue-100"><span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>Na Fila</span>
+                                {% elif lista.status == 'separacao' %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-50 text-amber-700 border border-amber-200"><span class="w-1.5 h-1.5 rounded-full bg-amber-500"></span>Em Separação</span>
+                                {% elif lista.status == 'pronto' %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200"><span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>Pronto</span>
+                                {% elif lista.status == 'entregue' %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-purple-50 text-purple-700 border border-purple-200"><span class="w-1.5 h-1.5 rounded-full bg-purple-500"></span>Concluído</span>
+                                {% else %}
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-bold bg-slate-100 text-slate-600">{{ lista.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+                            <td class="px-6 py-4 text-center">
+                                <div class="flex items-center justify-center gap-2 transition-opacity">
+                                    <a href="{% url 'shopping:list_detail' lista.uuid %}" target="_blank" class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-primary hover:border-primary/50 hover:bg-primary/5 transition-all shadow-sm" title="Ver Detalhes do Pedido">
+                                        <span class="material-symbols-outlined text-[18px]">visibility</span>
+                                    </a>
+                                    {% if lista.is_locked %}
+                                    <a href="{% url 'shopping:generate_picking_pdf' lista.uuid %}" target="_blank" class="w-8 h-8 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:text-red-500 hover:border-red-200 hover:bg-red-50 transition-all shadow-sm" title="Gerar PDF (Picking List)">
+                                        <span class="material-symbols-outlined text-[18px]">picture_as_pdf</span>
+                                    </a>
+                                    {% endif %}
+                                    {% if lista.status != 'entregue' %}
+                                    <form hx-post="{% url 'shopping:update_status_htmx' lista.uuid %}" hx-swap="none" onsubmit="setTimeout(() => window.location.reload(), 300)" class="m-0 p-0 flex">
+                                        {% csrf_token %}
+                                        <input type="hidden" name="status" value="entregue">
+                                        <button type="submit" class="w-8 h-8 rounded-lg bg-emerald-50 border border-emerald-200 flex items-center justify-center text-emerald-600 hover:text-white hover:bg-emerald-500 transition-all shadow-sm" title="Marcar como Finalizada (Concluída)">
+                                            <span class="material-symbols-outlined text-[18px]">check</span>
+                                        </button>
+                                    </form>
+                                    {% endif %}
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="6" class="px-6 py-12 text-center text-slate-400">
+                                <span class="material-symbols-outlined text-4xl mb-3 block opacity-50">inbox</span>
+                                <p class="text-sm font-medium">Nenhum pedido registrado no sistema ainda.</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
             </div>
         </div>
 

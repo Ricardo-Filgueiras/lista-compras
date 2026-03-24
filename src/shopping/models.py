@@ -53,6 +53,10 @@ class ShoppingList(models.Model):
     def __str__(self):
         return self.name
 
+    def get_absolute_url(self):
+        from django.urls import reverse
+        return reverse('shopping:list_detail', args=[str(self.uuid)])
+
     def get_total(self):
         return sum(item.get_subtotal() for item in self.items.all())
 
