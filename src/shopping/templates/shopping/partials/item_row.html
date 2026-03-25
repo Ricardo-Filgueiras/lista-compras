@@ -1,13 +1,28 @@
-<div class="item-row {% if item.is_purchased %}item-purchased{% endif %} {% if list.is_locked %}item-locked{% endif %}" id="item-{{ item.uuid }}">
-    <!-- Info do Item -->
-    <div class="item-info">
-        <div class="item-category">{{ item.category|default:"GERAL" }}</div>
-        <div class="item-name" title="{{ item.name }}">{{ item.name }}</div>
-        <div class="item-price-unit">
-            R$ {{ item.price|floatformat:2 }} <span class="text-dim">/ {{ item.get_unit_display }}</span>
-            {% if not list.is_locked %}
-                <span class="badge-swap" title="Trocar por similar">TROCAR</span>
-            {% endif %}
+<div class="item-row {% if item.is_purchased %}item-purchased{% endif %} {% if list.is_locked %}item-locked{% endif %}" id="item-{{ item.uuid }}" {% if item.is_purchased %}style="opacity: 0.5;"{% endif %}>
+    <div class="item-info-wrapper" style="display: flex; align-items: center; gap: 1rem;">
+        {% if not list.is_locked and can_edit %}
+            <input type="checkbox" 
+                   class="checkbox"
+                   style="width: 24px; height: 24px; cursor: pointer; flex-shrink: 0; min-width: 24px; border-radius: 4px; border: 2px solid var(--primary, #ccc);"
+                   {% if item.is_purchased %}checked{% endif %}
+                   hx-post="{% url 'shopping:item_toggle' list.uuid item.uuid %}"
+                   hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+        {% elif item.is_purchased %}
+            <input type="checkbox" class="checkbox" style="width: 24px; height: 24px; flex-shrink: 0; min-width: 24px; border-radius: 4px; opacity: 0.7;" checked disabled>
+        {% else %}
+            <input type="checkbox" class="checkbox" style="width: 24px; height: 24px; flex-shrink: 0; min-width: 24px; border-radius: 4px; opacity: 0.7;" disabled>
+        {% endif %}
+
+        <!-- Info do Item -->
+        <div class="item-info">
+            <div class="item-category">{{ item.category|default:"GERAL" }}</div>
+            <div class="item-name" title="{{ item.name }}">{{ item.name }}</div>
+            <div class="item-price-unit">
+                R$ {{ item.price|floatformat:2 }} <span class="text-dim">/ {{ item.get_unit_display }}</span>
+                {% if not list.is_locked %}
+                    <span class="badge-swap" title="Trocar por similar">TROCAR</span>
+                {% endif %}
+            </div>
         </div>
     </div>
 
