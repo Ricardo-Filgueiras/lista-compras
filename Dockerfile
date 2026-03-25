@@ -13,14 +13,11 @@ ENV PYTHONUNBUFFERED=1
 ENV UV_PROJECT_ENVIRONMENT="/venv"
 ENV UV_COMPILE_BYTECODE=1
 
-COPY pyproject.toml uv.lock README.md /src/
-COPY src /src
+WORKDIR /app
 
-COPY scripts /scripts 
-
-WORKDIR /src
-
-EXPOSE 8000
+COPY pyproject.toml uv.lock README.md ./
+COPY src /app
+COPY scripts /app/scripts
 
 RUN apk update && apk add --no-cache \
     postgresql-client \
@@ -49,10 +46,10 @@ RUN uv sync --frozen --no-dev --no-install-project && \
     chown -R duser:duser /data/web/media && \
     chmod -R 755 /data/web/static && \
     chmod -R 755 /data/web/media && \
-    chmod -R +x /scripts
+    chmod -R +x /app/scripts
 
-ENV PATH="/scripts:/venv/bin:$PATH"
+ENV PATH="/app/scripts:/venv/bin:$PATH"
 
 USER duser
 
-CMD ["./scripts/entrypoint_prod.sh"]
+CMD ["sh", "/app/scripts/entrypoint_prod.sh"]

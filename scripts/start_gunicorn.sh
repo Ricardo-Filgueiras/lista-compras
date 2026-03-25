@@ -8,8 +8,8 @@ set -e
 : "${GUNICORN_TIMEOUT:=60}"
 
 # Ajuste o módulo se o seu wsgi estiver em outro caminho
-# Ex.: "setup.wsgi:application" é o padrão comum quando o projeto Django se chama "setup".
-exec gunicorn setup.wsgi:application \
+# Ex.: "core.wsgi:application" é o caminho correto para este projeto.
+exec gunicorn core.wsgi:application \
   --bind "0.0.0.0:${PORT}" \
   --workers "${GUNICORN_WORKERS}" \
   --threads "${GUNICORN_THREADS}" \
