@@ -1,9 +1,9 @@
 services:
-  djangoapp:
-    container_name: djangoapp
+  webapp:
+    container_name: webapp
     build:
       context: .
-    command: ["sh", "scripts/commands.sh"]
+    command: [ "sh", "/scripts/commands.sh" ]
     ports:
       - 8000:8000
     volumes:
