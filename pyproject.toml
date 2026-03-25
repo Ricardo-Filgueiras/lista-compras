@@ -14,4 +14,5 @@ dependencies = [
     "tzdata>=2025.3",
     "qrcode[pil]>=8.0",
     "weasyprint>=63.0",
+    "whitenoise>=6.12.0",
 ]
