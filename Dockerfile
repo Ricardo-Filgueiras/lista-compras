@@ -7,9 +7,9 @@ LABEL maintainer="ricardo-filgueiras"
 # Instala o binário do uv a partir da imagem oficial
 COPY --from=uv /uv /uvx /bin/
 
-ENV PYTHONDONTWRITEBYTECODE 1
+ENV PYTHONDONTWRITEBYTECODE=1
 
-ENV PYTHONUNBUFFERED 1
+ENV PYTHONUNBUFFERED=1
 ENV UV_PROJECT_ENVIRONMENT="/venv"
 ENV UV_COMPILE_BYTECODE=1
 
