@@ -7,10 +7,10 @@ set -e
 : "${GUNICORN_THREADS:=4}"
 : "${GUNICORN_TIMEOUT:=60}"
 
-# Ajuste o módulo se o seu wsgi estiver em outro caminho
-# Ex.: "core.wsgi:application" é o caminho correto para este projeto.
+# Forçamos a porta 8000 pois portas < 1024 (como a 80) exigem root
+# O EasyPanel deve ser configurado com "Proxy Port: 8000"
 exec gunicorn core.wsgi:application \
-  --bind "0.0.0.0:${PORT}" \
+  --bind "0.0.0.0:8000" \
   --workers "${GUNICORN_WORKERS}" \
   --threads "${GUNICORN_THREADS}" \
   --timeout "${GUNICORN_TIMEOUT}"

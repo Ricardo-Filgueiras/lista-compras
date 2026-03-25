@@ -41,6 +41,7 @@ RUN uv sync --frozen --no-dev --no-install-project && \
     adduser --disabled-password --no-create-home duser && \
     mkdir -p /data/web/static && \
     mkdir -p /data/web/media && \
+    chown -R duser:duser /app && \
     chown -R duser:duser /venv && \
     chown -R duser:duser /data/web/static && \
     chown -R duser:duser /data/web/media && \
@@ -51,5 +52,8 @@ RUN uv sync --frozen --no-dev --no-install-project && \
 ENV PATH="/app/scripts:/venv/bin:$PATH"
 
 USER duser
+
+# Expondo a porta correta para documentação
+EXPOSE 8000
 
 CMD ["sh", "/app/scripts/entrypoint_prod.sh"]
