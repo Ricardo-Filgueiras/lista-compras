@@ -36,6 +36,20 @@ if not CSRF_TRUSTED_ORIGINS:
     CSRF_TRUSTED_ORIGINS = ["https://*.easypanel.host"] # Fallback genérico
 
 
+# ___________________________________________   #
+# Security
+if not DEBUG:
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+    SECURE_SSL_REDIRECT = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+# ___________________________________________   #
+
+
 # Application definition
 INSTALLED_APPS = [
     'django.contrib.admin',
@@ -117,9 +131,6 @@ USE_TZ = True
 
 # Static files (CSS, JavaScript, Images)
 # https://docs.djangoproject.com/en/6.0/howto/static-files/
-# Static files (CSS, JavaScript, Images)
-
-# Static files (CSS, JavaScript, Images)
 
 STATIC_URL = '/static/'
 
