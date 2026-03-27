@@ -1,29 +1,53 @@
 {% extends 'shopping/base.html' %}
-{% block title %}{{ action }} Lista · Lista de Compras{% endblock %}
+{% block title %}{{ action }} Lista · Projeto Lista{% endblock %}
 
 {% block content %}
-<div class="form-page">
-  <div class="form-card">
-    <div class="form-card-header">
-      <a href="{% url 'shopping:index' %}" class="back-link">← Voltar</a>
-      <h1>{{ action }} Lista</h1>
+<div class="max-w-3xl mx-auto pt-8 flex justify-center">
+  <div class="auth-glass w-full p-10 md:p-12 reveal active">
+    <div class="mb-10">
+        <a href="{% url 'shopping:index' %}" class="mono-label text-[10px] hover:text-obsidian-900 transition-colors flex items-center gap-2 mb-4 group">
+            <iconify-icon icon="solar:arrow-left-linear" class="group-hover:-translate-x-1 transition-transform"></iconify-icon>
+            Voltar
+        </a>
+        <h1 class="text-3xl font-display font-bold tracking-tighter">
+            {{ action }} <span class="text-accent-warm">Lista</span>
+        </h1>
     </div>
-    <form method="post" class="form-body">
+
+    <form method="post" class="space-y-6">
       {% csrf_token %}
       {% for field in form %}
-      <div class="form-group">
-        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      <div class="space-y-2">
+        <label class="mono-label text-obsidian-900 text-[10px] ml-1">{{ field.label }}</label>
         {{ field }}
         {% if field.errors %}
-        <ul class="form-errors">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        <ul class="text-[10px] font-bold text-red-500 uppercase tracking-widest list-none ml-1">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
         {% endif %}
       </div>
       {% endfor %}
-      <div class="form-actions">
-        <a href="{% url 'shopping:index' %}" class="btn btn-ghost">Cancelar</a>
-        <button type="submit" class="btn btn-primary" id="btn-salvar-lista">Salvar</button>
+
+      <div class="pt-6 flex gap-3">
+        <a href="{% url 'shopping:index' %}" class="flex-1 px-6 py-3.5 rounded-xl border border-obsidian-200 text-[10px] font-bold uppercase tracking-widest hover:bg-obsidian-50 transition-all text-center">
+            Cancelar
+        </a>
+        <div class="flex-[2] beam-btn">
+            <span class="beam-spinner"></span>
+            <button type="submit" class="beam-inner w-full justify-center">
+                Salvar Alterações
+            </button>
+        </div>
       </div>
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.auth-glass input, .auth-glass select, .auth-glass textarea').forEach(el => {
+      el.className = 'obsidian-input';
+    });
+  });
+</script>
 {% endblock %}

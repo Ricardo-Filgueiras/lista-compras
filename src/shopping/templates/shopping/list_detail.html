@@ -1,85 +1,140 @@
 {% extends 'shopping/base.html' %}
 {% block title %}{{ list.name }} · Projeto Lista{% endblock %}
 
+{% block extra_css %}
+<style>
+  .sticky-footer {
+    position: fixed; bottom: 0; left: 0; right: 0;
+    background: rgba(247,247,245,0.85);
+    backdrop-filter: blur(24px) saturate(1.5);
+    border-top: 1px solid var(--border-subtle);
+    z-index: 150;
+  }
+  .search-bar {
+    background: rgba(255,255,255,0.8);
+    border: 1px solid var(--border-subtle);
+    border-radius: 16px; padding: 1rem 1.2rem 1rem 3rem;
+    font-size: 0.875rem; outline: none; width: 100%;
+    transition: all 0.3s;
+  }
+  .search-bar:focus {
+    background: white;
+    border-color: var(--text-primary);
+    box-shadow: 0 16px 32px -8px rgba(0,0,0,0.06);
+  }
+  .add-item-card {
+    background: white;
+    border: 2px dashed var(--border-subtle);
+    border-radius: 20px;
+    transition: all 0.3s;
+  }
+  .add-item-card:focus-within {
+    border-color: var(--accent-warm);
+    background: rgba(232,168,56,0.02);
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="detail-page">
-
-  <!-- Cabeçalho Compacto -->
-  <div class="detail-header" style="margin-bottom: 1rem; align-items: center;">
-    <div class="detail-header-left">
-      <a href="{% url 'shopping:index' %}" class="back-link" style="font-weight: 600; color: var(--primary);">← Minhas Listas</a>
-      <h1 class="detail-title" style="font-size: 1.5rem; letter-spacing: -0.02em;">{{ list.name }}</h1>
-      {% if list.is_locked %}
-        <span class="badge-swap" style="background: var(--success); color: #fff;">PEDIDO FINALIZADO</span>
-      {% endif %}
-    </div>
-    <div class="detail-header-right" style="display: flex; flex-direction: column; align-items: flex-end; gap: 0.5rem;">
-      <span style="color: #6c757d; font-family: monospace; font-size: 1.1rem; font-weight: 600;">#{{ list.uuid|stringformat:"s"|slice:":8" }}</span>
-      {% if is_owner and not list.is_locked %}
-      <div class="detail-actions">
-        <a href="{% url 'shopping:list_pdf' list.uuid %}" class="btn btn-ghost btn-xs" style="display: none;">
-          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor" viewBox="0 0 16 16" style="margin-right: 4px;"><path d="M2.5 8a.5.5 0 1 0 0-1 .5.5 0 0 0 0 1z"/><path d="M5 1a2 2 0 0 0-2 2v2H2a2 2 0 0 0-2 2v3a2 2 0 0 0 2 2h1v1a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2v-1h1a2 2 0 0 0 2-2V7a2 2 0 0 0-2-2h-1V3a2 2 0 0 0-2-2H5zM4 3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1v2H4V3zm1 5a2 2 0 0 0-2 2v1H2a1 1 0 0 1-1-1V7a1 1 0 0 1 1-1h12a1 1 0 0 1 1 1v3a1 1 0 0 1-1 1h-1v-1a2 2 0 0 0-2-2H5zm7 2v3a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-3a1 1 0 0 1 1-1h6a1 1 0 0 1 1 1z"/></svg>
-          PDF
+<div>
+    <!-- Header -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10 reveal">
+      <div>
+        <a href="{% url 'shopping:index' %}" class="mono-label text-[10px] hover:text-obsidian-900 transition-colors flex items-center gap-2 mb-4 group">
+            <iconify-icon icon="solar:arrow-left-linear" class="group-hover:-translate-x-1 transition-transform"></iconify-icon>
+            Voltar para Listas
         </a>
-        <a href="{% url 'shopping:list_edit' list.uuid %}" class="btn btn-ghost btn-xs">Editar</a>
-        <a href="{% url 'shopping:list_share' list.uuid %}" class="btn btn-ghost btn-xs">Compartilhar</a>
+        <h1 class="text-4xl md:text-5xl font-display font-bold tracking-tighter">{{ list.name }}</h1>
+        <div class="flex items-center gap-3 mt-2">
+            <span class="mono-label text-[10px]">ID: {{ list.uuid|stringformat:"s"|slice:":8" }}</span>
+            {% if list.is_locked %}
+                <span class="text-[9px] font-bold uppercase tracking-widest bg-accent-sage/10 text-accent-sage px-3 py-1 rounded-full border border-accent-sage/20">🔒 Pedido Finalizado</span>
+            {% endif %}
+        </div>
+      </div>
+
+      {% if is_owner and not list.is_locked %}
+      <div class="flex items-center gap-2">
+        <a href="{% url 'shopping:list_edit' list.uuid %}" class="w-10 h-10 rounded-xl bg-obsidian-100 hover:bg-obsidian-900 hover:text-white flex items-center justify-center transition-all" title="Configurações">
+            <iconify-icon icon="solar:settings-bold-duotone" class="text-xl"></iconify-icon>
+        </a>
+        <a href="{% url 'shopping:list_share' list.uuid %}" class="w-10 h-10 rounded-xl bg-obsidian-100 hover:bg-obsidian-900 hover:text-white flex items-center justify-center transition-all" title="Compartilhar">
+            <iconify-icon icon="solar:share-bold-duotone" class="text-xl"></iconify-icon>
+        </a>
       </div>
       {% endif %}
+    </header>
+
+    <!-- Search -->
+    <div class="mb-10 reveal" style="animation-delay: 0.1s;">
+        <div class="relative">
+            <iconify-icon icon="solar:magnifer-linear" class="absolute left-4 top-1/2 -translate-y-1/2 text-obsidian-400 text-lg"></iconify-icon>
+            <input type="text" class="search-bar" placeholder="Buscar no catálogo inteligente...">
+        </div>
     </div>
-  </div>
 
-  <!-- Barra de Pesquisa / Filtro Rápido (Placeholder UX) -->
-  <div style="margin-bottom: 1.5rem;">
-    <input type="text" class="form-input" placeholder="Buscar no catálogo ou na lista..." style="border-radius: 12px; background: #fff;">
-  </div>
+    <!-- Add Quick Item -->
+    {% if can_edit and not list.is_locked %}
+    <section class="add-item-card p-3 md:p-7 mb-8 md:mb-12 reveal" style="animation-delay: 0.2s;">
+        <form method="post" action="{% url 'shopping:item_add' list.uuid %}" class="flex flex-row items-end gap-2 md:gap-4">
+            {% csrf_token %}
+            <div class="flex-[3] space-y-1 md:space-y-2">
+                <label class="mono-label text-[10px] ml-1 hidden md:block">Nome do Material</label>
+                <div class="auth-input">{{ item_form.name }}</div>
+            </div>
+            <div class="flex-1 space-y-1 md:space-y-2 min-w-[70px]">
+                <label class="mono-label text-[10px] ml-1 hidden md:block">Preço Est.</label>
+                <div class="auth-input">{{ item_form.price }}</div>
+            </div>
+            <div class="md:pt-6">
+                <button type="submit" class="w-10 h-10 md:w-12 md:h-12 rounded-xl bg-obsidian-900 text-white flex items-center justify-center hover:bg-accent-warm transition-all group flex-shrink-0">
+                    <iconify-icon icon="solar:add-circle-bold" class="text-xl md:text-2xl group-hover:rotate-90 transition-transform duration-500"></iconify-icon>
+                </button>
+            </div>
+        </form>
+    </section>
+    {% endif %}
 
-  <!-- Formulário de Adição Rápida (Se não estiver travada) -->
-  {% if can_edit and not list.is_locked %}
-  <div class="card" style="margin-bottom: 2rem; padding: 1rem; border-style: dashed; border-color: var(--primary);">
-    <form method="post" action="{% url 'shopping:item_add' list.uuid %}" class="item-add-form">
-      {% csrf_token %}
-      <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 0.5rem; align-items: flex-end;">
-        <div class="form-group" style="margin-bottom: 0;">
-          <label class="form-label" style="font-size: 0.7rem;">ADICIONAR PRODUTO</label>
-          {{ item_form.name }}
-        </div>
-        <div class="form-group" style="margin-bottom: 0; width: 80px;">
-          <label class="form-label" style="font-size: 0.7rem;">PREÇO</label>
-          {{ item_form.price }}
-        </div>
-        <button type="submit" class="btn btn-primary" style="height: 45px; width: 45px; padding: 0; justify-content: center; border-radius: 12px;">
-            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
-        </button>
-      </div>
-    </form>
-  </div>
-  {% endif %}
+    <!-- Items -->
+    <section class="space-y-3 mb-40 reveal" style="animation-delay: 0.3s;" id="shopping-items">
+        {% for item in pending_items %}
+            {% include 'shopping/partials/item_row.html' with item=item list=list can_edit=can_edit %}
+        {% empty %}
+            {% if not bought_items %}
+                <div class="py-20 text-center">
+                    <div class="w-16 h-16 bg-obsidian-100 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                        <iconify-icon icon="solar:clipboard-add-bold-duotone" class="text-3xl text-obsidian-300"></iconify-icon>
+                    </div>
+                    <h3 class="text-xl font-display font-bold tracking-tight mb-1">Lista Vazia</h3>
+                    <p class="text-xs text-obsidian-400 uppercase tracking-widest font-semibold">Comece a preencher seu carrinho</p>
+                </div>
+            {% endif %}
+        {% endfor %}
 
-  <!-- Listagem de Itens por Categoria (Simplificada) -->
-  <section class="items-section">
-    <div class="items-list" id="shopping-items">
-      {% for item in pending_items %}
-        {% include 'shopping/partials/item_row.html' with item=item list=list can_edit=can_edit %}
-      {% empty %}
-        {% if not bought_items %}
-          <div class="empty-state">
-            <div class="empty-icon">📝</div>
-            <p>Sua lista está vazia. Comece a adicionar materiais!</p>
-          </div>
+        {% if bought_items %}
+            <div class="pt-8 pb-3 border-t border-obsidian-100 flex items-center gap-4">
+                <span class="mono-label">Itens Comprados</span>
+                <div class="h-px bg-obsidian-100 flex-1"></div>
+            </div>
+            {% for item in bought_items %}
+                {% include 'shopping/partials/item_row.html' with item=item list=list can_edit=can_edit %}
+            {% endfor %}
         {% endif %}
-      {% endfor %}
-
-      {% for item in bought_items %}
-        {% include 'shopping/partials/item_row.html' with item=item list=list can_edit=can_edit %}
-      {% endfor %}
-    </div>
-  </section>
-
+    </section>
 </div>
 
-<!-- Sticky Footer: Resumo e Checkout -->
-<div class="sticky-footer" id="main-footer">
+<!-- Sticky Footer -->
+<div class="sticky-footer py-5 px-6 md:px-12" id="main-footer">
     {% include 'shopping/partials/footer_summary.html' with list=list total_all=total_all total_pix=total_pix %}
 </div>
+{% endblock %}
 
+{% block extra_js %}
+<script>
+    document.addEventListener('DOMContentLoaded', () => {
+        document.querySelectorAll('.auth-input input, .auth-input select').forEach(el => {
+            el.className = 'w-full bg-obsidian-50 border border-obsidian-200 rounded-xl px-5 py-3.5 text-sm font-medium outline-none focus:bg-white focus:border-obsidian-900 focus:ring-2 focus:ring-obsidian-100 transition-all';
+        });
+    });
+</script>
 {% endblock %}

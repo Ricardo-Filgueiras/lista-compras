@@ -2,29 +2,58 @@
 {% block title %}Orçamento · {{ list.name }}{% endblock %}
 
 {% block content %}
-<div class="form-page">
-  <div class="form-card">
-    <div class="form-card-header">
-      <a href="{% url 'shopping:list_detail' list.uuid %}" class="back-link">← Voltar</a>
-      <h1>💰 Orçamento da lista</h1>
-      <p class="form-subtitle">{{ list.name }}</p>
+<div class="max-w-3xl mx-auto pt-8 flex justify-center">
+  <div class="auth-glass w-full p-10 md:p-12 reveal active">
+    <div class="mb-10">
+        <a href="{% url 'shopping:list_detail' list.uuid %}" class="mono-label text-[10px] hover:text-obsidian-900 transition-colors flex items-center gap-2 mb-4 group">
+            <iconify-icon icon="solar:arrow-left-linear" class="group-hover:-translate-x-1 transition-transform"></iconify-icon>
+            Voltar
+        </a>
+        <div class="flex items-center gap-3 mb-2">
+            <div class="w-11 h-11 rounded-xl bg-accent-warm/10 flex items-center justify-center">
+                <iconify-icon icon="solar:wallet-money-bold-duotone" class="text-2xl text-accent-warm"></iconify-icon>
+            </div>
+        </div>
+        <h1 class="text-3xl font-display font-bold tracking-tighter">
+            Orçamento da <span class="text-accent-warm">Lista</span>
+        </h1>
+        <p class="text-xs text-obsidian-400 uppercase tracking-widest font-semibold mt-1">{{ list.name }}</p>
     </div>
-    <form method="post" class="form-body">
+
+    <form method="post" class="space-y-6">
       {% csrf_token %}
       {% for field in form %}
-      <div class="form-group">
-        <label class="form-label" for="{{ field.id_for_label }}">{{ field.label }}</label>
+      <div class="space-y-2">
+        <label class="mono-label text-obsidian-900 text-[10px] ml-1">{{ field.label }}</label>
         {{ field }}
         {% if field.errors %}
-        <ul class="form-errors">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+        <ul class="text-[10px] font-bold text-red-500 uppercase tracking-widest list-none ml-1">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
         {% endif %}
       </div>
       {% endfor %}
-      <div class="form-actions">
-        <a href="{% url 'shopping:list_detail' list.uuid %}" class="btn btn-ghost">Cancelar</a>
-        <button type="submit" class="btn btn-primary" id="btn-salvar-orcamento">Salvar orçamento</button>
+
+      <div class="pt-6 flex gap-3">
+        <a href="{% url 'shopping:list_detail' list.uuid %}" class="flex-1 px-6 py-3.5 rounded-xl border border-obsidian-200 text-[10px] font-bold uppercase tracking-widest hover:bg-obsidian-50 transition-all text-center">
+            Cancelar
+        </a>
+        <div class="flex-[2] beam-btn">
+            <span class="beam-spinner"></span>
+            <button type="submit" class="beam-inner w-full justify-center">
+                Salvar Orçamento
+            </button>
+        </div>
       </div>
     </form>
   </div>
 </div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.auth-glass input, .auth-glass select').forEach(el => {
+      el.className = 'obsidian-input';
+    });
+  });
+</script>
 {% endblock %}

@@ -1,0 +1,576 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Minhas Listas · Projeto Lista</title>
+    <meta name="description" content="Gerencie suas listas de compras de forma inteligente e colaborativa.">
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Core -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        obsidian: {
+                            50: '#F7F7F5', 100: '#EEEEE9', 200: '#DDDDD5',
+                            300: '#C4C4B8', 400: '#9E9E8F', 500: '#6B6B5E',
+                            600: '#4A4A40', 700: '#333330', 800: '#222220',
+                            900: '#141413', 950: '#0A0A09',
+                        },
+                        accent: {
+                            warm: '#E8A838', copper: '#C87941',
+                            sage: '#7A9E7E', sky: '#6BA3BE',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* =========================================
+           OBSIDIAN DESIGN SYSTEM v2.0 — Dashboard
+           ========================================= */
+        :root {
+            --bg-body: #F7F7F5;
+            --bg-surface: #FFFFFF;
+            --text-primary: #141413;
+            --text-secondary: #6B6B5E;
+            --text-muted: #9E9E8F;
+            --border-subtle: rgba(0,0,0,0.06);
+            --border-medium: rgba(0,0,0,0.12);
+            --accent-warm: #E8A838;
+            --accent-sage: #7A9E7E;
+            --accent-sky: #6BA3BE;
+            --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* Motion */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(24px) scale(0.98); filter: blur(6px); }
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes marqueeScroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+
+        .motion-enter { opacity: 0; animation-play-state: paused; }
+        .motion-enter.active {
+            animation: fadeSlideUp 0.9s var(--ease-expo) forwards;
+            animation-play-state: running;
+        }
+        .delay-100 { animation-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; }
+        .delay-500 { animation-delay: 0.5s; }
+
+        /* Glass Nav */
+        .glass-nav {
+            background: rgba(247,247,245,0.8);
+            backdrop-filter: blur(16px) saturate(1.5);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        /* Glow Card */
+        .glow-card {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s var(--ease-expo);
+        }
+        .glow-card::after {
+            content: '';
+            position: absolute;
+            width: 350px; height: 350px;
+            background: radial-gradient(circle, rgba(232,168,56,0.07) 0%, transparent 60%);
+            top: var(--y, -175px); left: var(--x, -175px);
+            transform: translate(-50%,-50%);
+            pointer-events: none; opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .glow-card:hover::after { opacity: 1; }
+        .glow-card:hover {
+            transform: translateY(-6px);
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 24px 48px -12px rgba(0,0,0,0.08);
+            border-color: var(--border-medium);
+        }
+
+        /* Shared card variant */
+        .glow-card.shared-card { border-style: dashed; }
+
+        /* Beam Button */
+        .beam-btn {
+            position: relative; overflow: hidden;
+            border-radius: 999px; padding: 1px;
+            background: var(--border-subtle); cursor: pointer;
+            display: inline-flex;
+        }
+        .beam-spinner {
+            position: absolute; inset: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(from 0deg, transparent 0 340deg, var(--accent-warm) 360deg);
+            animation: spinSlow 3s linear infinite;
+        }
+        .beam-inner {
+            background: var(--bg-surface); color: var(--text-primary);
+            padding: 12px 24px; border-radius: 999px;
+            position: relative; z-index: 2;
+            font-weight: 700; font-size: 0.78rem;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            transition: background 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .beam-btn:hover .beam-inner { background: #EEEEE9; }
+
+        /* Modal */
+        .modal-glass {
+            background: rgba(255,255,255,0.85);
+            backdrop-filter: blur(24px) saturate(1.5);
+            border: 1px solid rgba(255,255,255,0.6);
+            box-shadow: 0 50px 100px -20px rgba(0,0,0,0.15);
+        }
+
+        /* Marquee */
+        .marquee-track {
+            display: flex; width: max-content;
+            animation: marqueeScroll 35s linear infinite;
+        }
+
+        /* Noise */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0.025; pointer-events: none; z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* Grid Background */
+        .grid-bg {
+            background-size: 48px 48px;
+            background-image:
+                linear-gradient(to right, rgba(0,0,0,0.025) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.025) 1px, transparent 1px);
+        }
+
+        /* Mono Label */
+        .mono-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            letter-spacing: 0.18em;
+            color: var(--text-muted);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar-thumb { background: #C4C4B8; border-radius: 3px; }
+
+        /* Alerts */
+        .obsidian-alert {
+            border-radius: 12px;
+            padding: 12px 20px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 12px;
+            animation: fadeSlideUp 0.5s var(--ease-expo) forwards;
+        }
+        .obsidian-alert-success { background: rgba(122,158,126,0.1); border: 1px solid rgba(122,158,126,0.2); color: #4A7A4E; }
+        .obsidian-alert-error { background: rgba(200,80,80,0.1); border: 1px solid rgba(200,80,80,0.2); color: #C85050; }
+        .obsidian-alert-info { background: rgba(107,163,190,0.1); border: 1px solid rgba(107,163,190,0.2); color: #4A8AAA; }
+        .obsidian-alert-warning { background: rgba(232,168,56,0.1); border: 1px solid rgba(232,168,56,0.2); color: #B87A20; }
+
+        iconify-icon { display: inline-flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+
+<body class="selection:bg-obsidian-900 selection:text-white grid-bg">
+    <div class="noise-overlay"></div>
+
+    <!-- ====== NAVBAR ====== -->
+    <nav class="glass-nav fixed top-0 left-0 w-full z-[100] transition-all duration-500" id="navbar">
+        <div class="max-w-7xl mx-auto px-6 h-[72px] flex justify-between items-center">
+            <a href="{% url 'shopping:home' %}" class="flex items-center gap-3 group">
+                <div class="w-9 h-9 rounded-lg bg-obsidian-900 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <iconify-icon icon="solar:diamond-bold-duotone" class="text-xl"></iconify-icon>
+                </div>
+                <span class="font-display font-bold tracking-tight text-lg">Lista<span class="font-light text-obsidian-400">.AI</span></span>
+            </a>
+
+            {% if user.is_authenticated %}
+            <div class="flex items-center gap-5">
+                <div class="hidden md:flex flex-col items-end">
+                    <span class="mono-label text-[9px]">Usuário Ativo</span>
+                    <span class="text-sm font-bold font-display">{{ user.username }}</span>
+                </div>
+                <div class="flex items-center gap-3">
+                    {% if user.is_staff %}
+                    <a href="{% url 'shopping:admin_catalogo' %}" class="text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full border border-obsidian-200 hover:bg-obsidian-900 hover:text-white hover:border-obsidian-900 transition-all">
+                        Admin
+                    </a>
+                    {% endif %}
+                    <form method="post" action="{% url 'logout' %}">
+                        {% csrf_token %}
+                        <button type="submit" class="text-[10px] font-bold uppercase tracking-widest text-obsidian-400 hover:text-red-500 transition-colors flex items-center gap-1">
+                            <iconify-icon icon="solar:logout-2-linear" class="text-sm"></iconify-icon>
+                            Sair
+                        </button>
+                    </form>
+                </div>
+            </div>
+            {% endif %}
+        </div>
+    </nav>
+
+    <!-- ====== MAIN CONTENT ====== -->
+    <main class="pt-[96px] pb-16 px-6">
+        <div class="max-w-7xl mx-auto">
+
+            <!-- Alerts -->
+            {% if messages %}
+            <div class="space-y-3 mb-8">
+                {% for msg in messages %}
+                <div class="obsidian-alert obsidian-alert-{{ msg.tags }}">
+                    <span>{{ msg }}</span>
+                    <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 transition-opacity text-lg leading-none">&times;</button>
+                </div>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <!-- Header -->
+            <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12 motion-enter">
+                <div>
+                    <span class="mono-label block mb-2">Visão Geral</span>
+                    <h1 class="text-4xl md:text-5xl font-display font-bold tracking-tighter">
+                        Minhas <span class="text-accent-warm">Listas</span>
+                    </h1>
+                </div>
+                <div class="beam-btn" onclick="toggleModal('modal-nova-lista')">
+                    <span class="beam-spinner"></span>
+                    <span class="beam-inner">
+                        <iconify-icon icon="solar:add-circle-bold-duotone" class="text-lg"></iconify-icon>
+                        Criar Nova Lista
+                    </span>
+                </div>
+            </header>
+
+            <!-- Stats -->
+            <section class="grid grid-cols-1 md:grid-cols-3 gap-5 mb-14">
+                <div class="glow-card p-7 motion-enter delay-100" onmousemove="glowTrack(event, this)">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="mono-label">Total de Listas</span>
+                        <div class="w-2.5 h-2.5 rounded-full bg-accent-warm animate-pulse"></div>
+                    </div>
+                    <div class="text-4xl font-display font-bold">{{ own_lists.count|add:shared_lists.count }}</div>
+                    <p class="text-xs text-obsidian-400 mt-2 uppercase tracking-widest font-semibold">Ativas no sistema</p>
+                </div>
+
+                <div class="glow-card p-7 motion-enter delay-200" onmousemove="glowTrack(event, this)">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="mono-label text-accent-sky">Itens Totais</span>
+                        <iconify-icon icon="solar:box-minimalistic-bold-duotone" class="text-accent-sky text-xl"></iconify-icon>
+                    </div>
+                    <div class="text-4xl font-display font-bold">{{ total_items|default:"0" }}</div>
+                    <p class="text-xs text-obsidian-400 mt-2 uppercase tracking-widest font-semibold">Aguardando picking</p>
+                </div>
+
+                <div class="glow-card p-7 motion-enter delay-300" onmousemove="glowTrack(event, this)">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="mono-label text-accent-sage">Status Geral</span>
+                        <iconify-icon icon="solar:shield-check-bold-duotone" class="text-accent-sage text-xl"></iconify-icon>
+                    </div>
+                    <div class="text-[10px] font-bold uppercase tracking-widest leading-relaxed">
+                        Sincronização Ativa<br>
+                        <span class="text-accent-sage">100% cloud secure</span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Lists Grid -->
+            <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-20">
+
+                <!-- Own Lists -->
+                {% for lst in own_lists %}
+                <div class="glow-card p-7 flex flex-col justify-between group cursor-pointer motion-enter"
+                     data-url="{% url 'shopping:list_detail' lst.uuid %}"
+                     onclick="handleCardClick(event, this)"
+                     onmousemove="glowTrack(event, this)">
+                    <div>
+                        <div class="flex justify-between items-start mb-5">
+                            <div class="w-11 h-11 rounded-xl bg-obsidian-900 text-white flex items-center justify-center text-xl group-hover:rotate-6 group-hover:scale-110 transition-all">
+                                {% if lst.is_locked %}
+                                    <iconify-icon icon="solar:lock-bold-duotone"></iconify-icon>
+                                {% else %}
+                                    <iconify-icon icon="solar:document-text-bold-duotone"></iconify-icon>
+                                {% endif %}
+                            </div>
+
+                            <div class="flex items-center gap-2">
+                                {% if lst.is_locked %}
+                                <span class="text-[9px] font-bold uppercase tracking-widest bg-accent-sage/10 text-accent-sage px-3 py-1 rounded-full border border-accent-sage/20">Finalizada</span>
+                                {% endif %}
+
+                                <form action="{% url 'shopping:list_delete' lst.uuid %}" method="post" onsubmit="return confirm('Excluir esta lista permanentemente?')" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                    {% csrf_token %}
+                                    <button type="submit" class="text-obsidian-300 hover:text-red-500 transition-colors">
+                                        <iconify-icon icon="solar:trash-bin-minimalistic-bold" class="text-lg"></iconify-icon>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+
+                        <h3 class="text-lg font-display font-semibold tracking-tight mb-1">{{ lst.name }}</h3>
+                        <p class="text-xs text-obsidian-400 uppercase tracking-widest font-semibold mb-5">{{ lst.items.count }} itens no carrinho</p>
+                    </div>
+
+                    <div class="pt-5 border-t border-obsidian-100 flex justify-between items-end">
+                        <div>
+                            <span class="mono-label text-[9px] block">Orçamento</span>
+                            <span class="text-sm font-bold">{% if lst.budget %}R$ {{ lst.budget }}{% else %}Não definido{% endif %}</span>
+                        </div>
+                        <iconify-icon icon="solar:arrow-right-up-linear" class="text-xl text-obsidian-300 group-hover:text-accent-warm group-hover:translate-x-1 group-hover:-translate-y-1 transition-all"></iconify-icon>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Shared Lists -->
+                {% for lst in shared_lists %}
+                <div class="glow-card shared-card p-7 flex flex-col justify-between group cursor-pointer motion-enter"
+                     data-url="{% url 'shopping:list_detail' lst.uuid %}"
+                     onclick="handleCardClick(event, this)"
+                     onmousemove="glowTrack(event, this)">
+                    <div>
+                        <div class="flex justify-between items-start mb-5">
+                            <div class="w-11 h-11 rounded-xl bg-accent-sky text-white flex items-center justify-center text-xl group-hover:rotate-6 group-hover:scale-110 transition-all">
+                                <iconify-icon icon="solar:users-group-rounded-bold-duotone"></iconify-icon>
+                            </div>
+
+                            <form action="{% url 'shopping:shared_list_remove' lst.uuid %}" method="post" onsubmit="return confirm('Remover esta lista compartilhada?')" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                                {% csrf_token %}
+                                <button type="submit" class="text-obsidian-300 hover:text-red-500 transition-colors">
+                                    <iconify-icon icon="solar:trash-bin-minimalistic-bold" class="text-lg"></iconify-icon>
+                                </button>
+                            </form>
+                        </div>
+
+                        <h3 class="text-lg font-display font-semibold tracking-tight mb-1">{{ lst.name }}</h3>
+                        <p class="text-xs text-obsidian-400 uppercase tracking-widest font-semibold mb-2">
+                            Compartilhada por <span class="text-obsidian-900">{{ lst.user.username }}</span>
+                        </p>
+                    </div>
+
+                    <div class="pt-5 border-t border-obsidian-100 flex justify-between items-end">
+                        <span class="mono-label text-[9px]">Acesso Colaborativo</span>
+                        <iconify-icon icon="solar:arrow-right-up-linear" class="text-xl text-obsidian-300 group-hover:text-accent-sky group-hover:translate-x-1 group-hover:-translate-y-1 transition-all"></iconify-icon>
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- Empty State -->
+                {% if not own_lists and not shared_lists %}
+                <div class="col-span-full py-24 text-center motion-enter">
+                    <div class="w-20 h-20 bg-obsidian-100 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                        <iconify-icon icon="solar:folder-open-bold-duotone" class="text-4xl text-obsidian-300"></iconify-icon>
+                    </div>
+                    <h3 class="text-2xl font-display font-bold tracking-tight mb-2">Sua mesa está vazia</h3>
+                    <p class="text-obsidian-400 max-w-sm mx-auto mb-8 text-sm">
+                        Comece criando sua primeira lista inteligente para organizar suas compras.
+                    </p>
+                    <div class="beam-btn" onclick="toggleModal('modal-nova-lista')">
+                        <span class="beam-spinner"></span>
+                        <span class="beam-inner">
+                            <iconify-icon icon="solar:rocket-bold-duotone" class="text-lg"></iconify-icon>
+                            Começar Agora
+                        </span>
+                    </div>
+                </div>
+                {% endif %}
+            </section>
+
+            <!-- Templates Section -->
+            {% if templates %}
+            <section class="mb-20 motion-enter">
+                <div class="flex items-center gap-3 mb-8">
+                    <div class="h-px w-8 bg-obsidian-300"></div>
+                    <span class="mono-label text-obsidian-900">Templates Disponíveis</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    {% for tmpl in templates %}
+                    <a href="{% url 'shopping:list_clone' tmpl.uuid %}" class="glow-card p-5 group flex items-center gap-4 hover:bg-white transition-colors" onmousemove="glowTrack(event, this)">
+                        <div class="w-10 h-10 rounded-lg bg-accent-copper/10 flex items-center justify-center flex-shrink-0">
+                            <iconify-icon icon="solar:copy-bold-duotone" class="text-xl text-accent-copper"></iconify-icon>
+                        </div>
+                        <div class="min-w-0">
+                            <h4 class="text-sm font-semibold truncate">{{ tmpl.name }}</h4>
+                            <p class="text-[10px] text-obsidian-400 uppercase tracking-widest">{{ tmpl.items.count }} itens</p>
+                        </div>
+                        <iconify-icon icon="solar:arrow-right-linear" class="text-obsidian-300 group-hover:text-accent-copper group-hover:translate-x-1 transition-all ml-auto flex-shrink-0"></iconify-icon>
+                    </a>
+                    {% endfor %}
+                </div>
+            </section>
+            {% endif %}
+        </div>
+    </main>
+
+    <!-- ====== FOOTER ====== -->
+    <footer class="border-t border-obsidian-200">
+        <!-- Marquee -->
+        <div class="py-4 overflow-hidden bg-obsidian-950">
+            <div class="marquee-track opacity-30 text-white">
+                <span class="mx-8 text-xs font-mono uppercase tracking-[0.2em]">• Obsidian DS v2.0</span>
+                <span class="mx-8 text-xs font-mono uppercase tracking-[0.2em]">• Projeto Lista</span>
+                <span class="mx-8 text-xs font-mono uppercase tracking-[0.2em]">• Motion Styled</span>
+                <span class="mx-8 text-xs font-mono uppercase tracking-[0.2em]">• Responsive</span>
+                <span class="mx-8 text-xs font-mono uppercase tracking-[0.2em]">• Acessível</span>
+                <span class="mx-8 text-xs font-mono uppercase tracking-[0.2em]">• Obsidian DS v2.0</span>
+                <span class="mx-8 text-xs font-mono uppercase tracking-[0.2em]">• Projeto Lista</span>
+                <span class="mx-8 text-xs font-mono uppercase tracking-[0.2em]">• Motion Styled</span>
+                <span class="mx-8 text-xs font-mono uppercase tracking-[0.2em]">• Responsive</span>
+                <span class="mx-8 text-xs font-mono uppercase tracking-[0.2em]">• Acessível</span>
+            </div>
+        </div>
+        <div class="py-6 text-center bg-obsidian-50">
+            <p class="text-xs text-obsidian-400 font-mono uppercase tracking-widest">Lista de Compras &copy; {% now "Y" %} · Obsidian DS</p>
+        </div>
+    </footer>
+
+    <!-- ====== MODAL ====== -->
+    <div id="modal-nova-lista" class="fixed inset-0 z-[200] flex items-center justify-center p-6 transition-all duration-500 {% if not form.errors %}invisible opacity-0{% endif %}">
+        <div class="absolute inset-0 bg-obsidian-950/30 backdrop-blur-md" onclick="toggleModal('modal-nova-lista')"></div>
+        <div class="modal-glass w-full max-w-lg rounded-3xl p-10 relative z-10">
+            <div class="flex justify-between items-start mb-8">
+                <div>
+                    <span class="mono-label block mb-2">Configuração</span>
+                    <h2 class="text-2xl font-display font-bold tracking-tight">
+                        Nova <span class="text-accent-warm">Lista</span>
+                    </h2>
+                </div>
+                <button onclick="toggleModal('modal-nova-lista')" class="w-10 h-10 rounded-xl bg-obsidian-100 hover:bg-obsidian-900 hover:text-white flex items-center justify-center transition-all">
+                    <iconify-icon icon="solar:close-circle-bold" class="text-xl"></iconify-icon>
+                </button>
+            </div>
+
+            <form method="post" class="space-y-5">
+                {% csrf_token %}
+                {% for field in form %}
+                <div class="space-y-2">
+                    <label class="mono-label text-obsidian-900 text-[10px]">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.errors %}
+                    <ul class="text-[10px] font-bold text-red-500 uppercase tracking-widest list-none">
+                        {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                    </ul>
+                    {% endif %}
+                </div>
+                {% endfor %}
+
+                <div class="pt-4 flex gap-3">
+                    <button type="button" onclick="toggleModal('modal-nova-lista')" class="flex-1 px-6 py-3.5 rounded-xl border border-obsidian-200 text-[10px] font-bold uppercase tracking-widest hover:bg-obsidian-50 transition-all">
+                        Cancelar
+                    </button>
+                    <div class="flex-[2] beam-btn">
+                        <span class="beam-spinner"></span>
+                        <button type="submit" class="beam-inner w-full justify-center">
+                            Criar Lista
+                        </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- ====== JAVASCRIPT ====== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Scroll reveal
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) entry.target.classList.add('active');
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+            document.querySelectorAll('.motion-enter').forEach(el => observer.observe(el));
+
+            // Trigger visible elements immediately
+            setTimeout(() => {
+                document.querySelectorAll('.motion-enter').forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('active');
+                    }
+                });
+            }, 200);
+
+            // Navbar scroll shadow
+            window.addEventListener('scroll', () => {
+                const nav = document.getElementById('navbar');
+                nav.style.boxShadow = window.scrollY > 50
+                    ? '0 4px 20px -4px rgba(0,0,0,0.06)'
+                    : 'none';
+            });
+
+            // Style Django form fields
+            document.querySelectorAll('#modal-nova-lista input, #modal-nova-lista select, #modal-nova-lista textarea').forEach(el => {
+                el.className = 'w-full bg-white border border-obsidian-200 rounded-xl px-5 py-3.5 text-sm outline-none focus:border-obsidian-900 focus:ring-2 focus:ring-obsidian-100 transition-all font-sans';
+            });
+        });
+
+        function toggleModal(id) {
+            const modal = document.getElementById(id);
+            if (modal.classList.contains('invisible')) {
+                modal.classList.remove('invisible', 'opacity-0');
+            } else {
+                modal.classList.add('invisible', 'opacity-0');
+            }
+        }
+
+        function handleCardClick(event, element) {
+            if (event.target.closest('button') || event.target.closest('form')) return;
+            window.location.href = element.getAttribute('data-url');
+        }
+
+        function glowTrack(e, el) {
+            const rect = el.getBoundingClientRect();
+            el.style.setProperty('--x', `${e.clientX - rect.left}px`);
+            el.style.setProperty('--y', `${e.clientY - rect.top}px`);
+        }
+    </script>
+</body>
+</html>

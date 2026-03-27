@@ -1,0 +1,792 @@
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Obsidian Design System v2.0 | Projeto Lista</title>
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        obsidian: {
+                            50: '#F7F7F5',
+                            100: '#EEEEE9',
+                            200: '#DDDDD5',
+                            300: '#C4C4B8',
+                            400: '#9E9E8F',
+                            500: '#6B6B5E',
+                            600: '#4A4A40',
+                            700: '#333330',
+                            800: '#222220',
+                            900: '#141413',
+                            950: '#0A0A09',
+                        },
+                        accent: {
+                            warm: '#E8A838',
+                            copper: '#C87941',
+                            sage: '#7A9E7E',
+                            sky: '#6BA3BE',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* =========================================
+           OBSIDIAN DESIGN SYSTEM v2.0
+           Uma linguagem visual sofisticada para
+           o Projeto Lista de Compras.
+           ========================================= */
+
+        :root {
+            --bg-body: #F7F7F5;
+            --bg-surface: #FFFFFF;
+            --bg-elevated: #EEEEE9;
+            --text-primary: #141413;
+            --text-secondary: #6B6B5E;
+            --text-muted: #9E9E8F;
+            --border-subtle: rgba(0,0,0,0.06);
+            --border-medium: rgba(0,0,0,0.12);
+            --accent-warm: #E8A838;
+            --accent-copper: #C87941;
+            --accent-sage: #7A9E7E;
+            --accent-sky: #6BA3BE;
+            --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+            --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-body);
+            color: var(--text-primary);
+            -webkit-font-smoothing: antialiased;
+            overflow-x: hidden;
+            margin: 0;
+        }
+
+        /* --- MOTION SYSTEM --- */
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(30px) scale(0.98); filter: blur(8px); }
+            to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+        }
+        @keyframes clipIn {
+            from { clip-path: inset(100% 0 0 0); }
+            to { clip-path: inset(0 0 0 0); }
+        }
+        @keyframes marqueeScroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-8px); }
+        }
+        @keyframes pulseGlow {
+            0%, 100% { opacity: 0.4; }
+            50% { opacity: 0.8; }
+        }
+
+        .motion-enter {
+            opacity: 0;
+            animation-play-state: paused;
+        }
+        .motion-enter.active {
+            animation: fadeSlideUp 1s var(--ease-expo) forwards;
+            animation-play-state: running;
+        }
+        .delay-100 { animation-delay: 0.1s; transition-delay: 0.1s; }
+        .delay-200 { animation-delay: 0.2s; transition-delay: 0.2s; }
+        .delay-300 { animation-delay: 0.3s; transition-delay: 0.3s; }
+        .delay-500 { animation-delay: 0.5s; transition-delay: 0.5s; }
+        .delay-700 { animation-delay: 0.7s; transition-delay: 0.7s; }
+
+        /* Hero Text Reveal */
+        .hero-mask { overflow: hidden; display: inline-flex; line-height: 1; }
+        .hero-mask span {
+            transform: translateY(110%) rotate(1.5deg);
+            opacity: 0;
+            transition: all 1.4s var(--ease-expo);
+            display: inline-block;
+            transform-origin: top left;
+        }
+        .hero-mask.active span { transform: translateY(0) rotate(0); opacity: 1; }
+
+        /* --- COMPONENT STYLES --- */
+
+        /* Glow Card */
+        .glow-card {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid var(--border-subtle);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.5s var(--ease-expo);
+        }
+        .glow-card::after {
+            content: '';
+            position: absolute;
+            width: 400px; height: 400px;
+            background: radial-gradient(circle, rgba(232,168,56,0.08) 0%, transparent 60%);
+            top: var(--y, -200px); left: var(--x, -200px);
+            transform: translate(-50%, -50%);
+            pointer-events: none; opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .glow-card:hover::after { opacity: 1; }
+        .glow-card:hover {
+            transform: translateY(-4px);
+            box-shadow: 0 16px 40px -12px rgba(0,0,0,0.08);
+            border-color: var(--border-medium);
+        }
+
+        /* Beam Button */
+        .beam-btn {
+            position: relative; overflow: hidden;
+            border-radius: 999px; padding: 1px;
+            background: var(--border-subtle); cursor: pointer;
+            display: inline-flex;
+        }
+        .beam-spinner {
+            position: absolute; inset: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(from 0deg, transparent 0 340deg, var(--accent-warm) 360deg);
+            animation: spinSlow 3s linear infinite;
+        }
+        .beam-inner {
+            background: var(--bg-surface); color: var(--text-primary);
+            padding: 12px 28px; border-radius: 999px;
+            position: relative; z-index: 2;
+            font-weight: 600; font-size: 0.8rem;
+            text-transform: uppercase; letter-spacing: 0.08em;
+            transition: background 0.3s;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .beam-btn:hover .beam-inner { background: var(--bg-elevated); }
+
+        /* Marquee */
+        .marquee-track {
+            display: flex; width: max-content;
+            animation: marqueeScroll 35s linear infinite;
+        }
+
+        /* Grid Background */
+        .grid-bg {
+            background-size: 48px 48px;
+            background-image:
+                linear-gradient(to right, rgba(0,0,0,0.03) 1px, transparent 1px),
+                linear-gradient(to bottom, rgba(0,0,0,0.03) 1px, transparent 1px);
+        }
+
+        /* Noise Overlay */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0.03; pointer-events: none; z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+
+        /* Glass Nav */
+        .glass-nav {
+            background: rgba(247,247,245,0.8);
+            backdrop-filter: blur(16px) saturate(1.5);
+            border-bottom: 1px solid var(--border-subtle);
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: var(--bg-body); }
+        ::-webkit-scrollbar-thumb { background: #C4C4B8; border-radius: 3px; }
+        ::-webkit-scrollbar-thumb:hover { background: #9E9E8F; }
+
+        /* Transparent Stroke Text */
+        .text-stroke {
+            color: transparent;
+            -webkit-text-stroke: 1.5px rgba(20,20,19,0.15);
+            transition: all 0.6s ease;
+        }
+        .group:hover .text-stroke {
+            -webkit-text-stroke-color: rgba(20,20,19,0.6);
+        }
+
+        iconify-icon { display: inline-flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+
+<body class="selection:bg-obsidian-900 selection:text-white">
+    <div class="noise-overlay"></div>
+
+    <!-- ====== NAVIGATION ====== -->
+    <header class="glass-nav fixed top-0 left-0 w-full z-50 transition-all duration-500" id="navbar">
+        <div class="max-w-[1440px] mx-auto px-6 md:px-12 h-20 flex justify-between items-center">
+            <div class="flex items-center gap-3">
+                <div class="w-9 h-9 rounded-lg bg-obsidian-900 text-white flex items-center justify-center">
+                    <iconify-icon icon="solar:diamond-bold-duotone" class="text-xl"></iconify-icon>
+                </div>
+                <span class="font-display font-bold tracking-tight text-lg">OBSIDIAN<span class="font-light text-obsidian-400">.DS</span></span>
+            </div>
+
+            <nav class="hidden md:flex items-center gap-8">
+                <a href="#typography" class="text-xs font-mono uppercase tracking-widest text-obsidian-400 hover:text-obsidian-900 transition-colors">Tipografia</a>
+                <a href="#colors" class="text-xs font-mono uppercase tracking-widest text-obsidian-400 hover:text-obsidian-900 transition-colors">Cores</a>
+                <a href="#components" class="text-xs font-mono uppercase tracking-widest text-obsidian-400 hover:text-obsidian-900 transition-colors">Componentes</a>
+                <a href="#icons" class="text-xs font-mono uppercase tracking-widest text-obsidian-400 hover:text-obsidian-900 transition-colors">Ícones</a>
+            </nav>
+
+            <button class="beam-btn">
+                <span class="beam-spinner"></span>
+                <span class="beam-inner">
+                    <iconify-icon icon="solar:download-minimalistic-linear"></iconify-icon>
+                    Download Kit
+                </span>
+            </button>
+        </div>
+    </header>
+
+    <main class="relative z-10 pt-20">
+
+        <!-- ====== HERO ====== -->
+        <section class="min-h-[90vh] flex flex-col items-center justify-center relative overflow-hidden py-24 grid-bg">
+            <!-- Background Orbs -->
+            <div class="absolute inset-0 z-0 pointer-events-none">
+                <div class="absolute top-1/4 left-1/3 w-[500px] h-[500px] bg-gradient-to-br from-accent-warm/10 to-accent-copper/5 rounded-full blur-[120px]" style="animation: pulseGlow 6s ease-in-out infinite;"></div>
+                <div class="absolute bottom-1/4 right-1/4 w-[400px] h-[400px] bg-gradient-to-tl from-accent-sage/10 to-accent-sky/5 rounded-full blur-[100px]" style="animation: pulseGlow 8s ease-in-out infinite 2s;"></div>
+            </div>
+
+            <div class="relative z-10 text-center px-6 max-w-5xl mx-auto">
+                <!-- Badge -->
+                <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full border border-obsidian-200 bg-white/60 backdrop-blur mb-10 motion-enter" style="animation-delay:0.1s;">
+                    <span class="w-2 h-2 rounded-full bg-accent-sage animate-pulse"></span>
+                    <span class="text-[10px] font-mono uppercase tracking-[0.2em] text-obsidian-500">System v2.0 Online</span>
+                </div>
+
+                <!-- Title -->
+                <h1 class="text-6xl md:text-[9rem] font-display font-bold tracking-tighter leading-[0.9] mb-8">
+                    <div class="hero-mask"><span class="block">Obsidian</span></div><br>
+                    <div class="hero-mask"><span class="block text-stroke" data-text="System">System</span></div>
+                </h1>
+
+                <p class="text-lg md:text-xl text-obsidian-500 max-w-2xl mx-auto mb-12 font-light leading-relaxed motion-enter delay-300">
+                    Um design system sofisticado para o <span class="text-obsidian-900 font-medium">Projeto Lista</span>.
+                    Construído sobre os princípios de <span class="text-obsidian-900 font-medium">clareza</span>,
+                    <span class="text-obsidian-900 font-medium">profundidade</span> e
+                    <span class="text-obsidian-900 font-medium">movimento intencional</span>.
+                </p>
+
+                <!-- Quick Access Grid -->
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-3xl mx-auto motion-enter delay-500">
+                    <div class="glow-card p-5 rounded-xl flex flex-col items-center gap-3 group cursor-pointer hover:bg-white transition-colors" onmousemove="glowTrack(event, this)">
+                        <iconify-icon icon="solar:text-bold-square-linear" class="text-2xl text-obsidian-400 group-hover:text-accent-warm transition-colors"></iconify-icon>
+                        <span class="text-[10px] font-mono uppercase tracking-widest">Tipografia</span>
+                    </div>
+                    <div class="glow-card p-5 rounded-xl flex flex-col items-center gap-3 group cursor-pointer hover:bg-white transition-colors" onmousemove="glowTrack(event, this)">
+                        <iconify-icon icon="solar:palette-round-linear" class="text-2xl text-obsidian-400 group-hover:text-accent-copper transition-colors"></iconify-icon>
+                        <span class="text-[10px] font-mono uppercase tracking-widest">Cores</span>
+                    </div>
+                    <div class="glow-card p-5 rounded-xl flex flex-col items-center gap-3 group cursor-pointer hover:bg-white transition-colors" onmousemove="glowTrack(event, this)">
+                        <iconify-icon icon="solar:widget-2-linear" class="text-2xl text-obsidian-400 group-hover:text-accent-sage transition-colors"></iconify-icon>
+                        <span class="text-[10px] font-mono uppercase tracking-widest">Componentes</span>
+                    </div>
+                    <div class="glow-card p-5 rounded-xl flex flex-col items-center gap-3 group cursor-pointer hover:bg-white transition-colors" onmousemove="glowTrack(event, this)">
+                        <iconify-icon icon="solar:stars-minimalistic-linear" class="text-2xl text-obsidian-400 group-hover:text-accent-sky transition-colors"></iconify-icon>
+                        <span class="text-[10px] font-mono uppercase tracking-widest">Motion</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== MARQUEE DIVIDER ====== -->
+        <div class="py-6 border-y border-obsidian-200 overflow-hidden bg-white/50">
+            <div class="marquee-track opacity-30 hover:opacity-60 transition-opacity duration-500">
+                <span class="text-4xl md:text-5xl font-display font-bold tracking-tighter mx-8 text-obsidian-300 uppercase">Tipografia</span>
+                <span class="text-4xl md:text-5xl font-display font-bold tracking-tighter mx-8 text-obsidian-900 uppercase">Cores</span>
+                <span class="text-4xl md:text-5xl font-display font-bold tracking-tighter mx-8 text-obsidian-300 uppercase">Layout</span>
+                <span class="text-4xl md:text-5xl font-display font-bold tracking-tighter mx-8 text-obsidian-900 uppercase">Motion</span>
+                <span class="text-4xl md:text-5xl font-display font-bold tracking-tighter mx-8 text-obsidian-300 uppercase">Componentes</span>
+                <span class="text-4xl md:text-5xl font-display font-bold tracking-tighter mx-8 text-obsidian-900 uppercase">Ícones</span>
+                <span class="text-4xl md:text-5xl font-display font-bold tracking-tighter mx-8 text-obsidian-300 uppercase">Tipografia</span>
+                <span class="text-4xl md:text-5xl font-display font-bold tracking-tighter mx-8 text-obsidian-900 uppercase">Cores</span>
+                <span class="text-4xl md:text-5xl font-display font-bold tracking-tighter mx-8 text-obsidian-300 uppercase">Layout</span>
+                <span class="text-4xl md:text-5xl font-display font-bold tracking-tighter mx-8 text-obsidian-900 uppercase">Motion</span>
+                <span class="text-4xl md:text-5xl font-display font-bold tracking-tighter mx-8 text-obsidian-300 uppercase">Componentes</span>
+                <span class="text-4xl md:text-5xl font-display font-bold tracking-tighter mx-8 text-obsidian-900 uppercase">Ícones</span>
+            </div>
+        </div>
+
+        <!-- ====== 01 / TYPOGRAPHY ====== -->
+        <section id="typography" class="py-24 border-b border-obsidian-200 bg-white">
+            <div class="max-w-[1440px] mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-12 gap-12">
+                <div class="md:col-span-3">
+                    <h2 class="text-xs font-mono uppercase tracking-widest text-obsidian-400 mb-4 sticky top-24">01 / Tipografia</h2>
+                </div>
+                <div class="md:col-span-9 space-y-16">
+
+                    <!-- Font Families -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-8 motion-enter">
+                        <div class="p-8 border border-obsidian-100 rounded-2xl bg-obsidian-50/50">
+                            <span class="text-xs font-mono text-obsidian-400 block mb-4">DISPLAY</span>
+                            <p class="text-5xl font-display font-bold mb-3">Ag</p>
+                            <p class="font-display text-lg font-medium">Space Grotesk</p>
+                            <p class="text-sm text-obsidian-500 mt-2">Títulos e headings de impacto.</p>
+                        </div>
+                        <div class="p-8 border border-obsidian-100 rounded-2xl bg-obsidian-50/50">
+                            <span class="text-xs font-mono text-obsidian-400 block mb-4">SANS-SERIF</span>
+                            <p class="text-5xl font-sans font-medium mb-3">Aa</p>
+                            <p class="text-lg font-medium">Inter</p>
+                            <p class="text-sm text-obsidian-500 mt-2">Corpo de texto e elementos UI.</p>
+                        </div>
+                        <div class="p-8 border border-obsidian-100 rounded-2xl bg-obsidian-50/50">
+                            <span class="text-xs font-mono text-obsidian-400 block mb-4">MONOSPACE</span>
+                            <p class="text-5xl font-mono font-medium mb-3">{}</p>
+                            <p class="font-mono text-lg">JetBrains Mono</p>
+                            <p class="text-sm text-obsidian-500 mt-2">Labels técnicas e metadados.</p>
+                        </div>
+                    </div>
+
+                    <!-- Type Scale -->
+                    <div class="space-y-0 border border-obsidian-100 rounded-2xl overflow-hidden">
+                        <div class="grid grid-cols-12 p-6 md:p-8 items-baseline border-b border-obsidian-100 hover:bg-obsidian-50/50 transition-colors group motion-enter">
+                            <div class="col-span-12 md:col-span-2 text-xs font-mono text-obsidian-400 mb-2 md:mb-0">H1 / Display</div>
+                            <div class="col-span-12 md:col-span-8">
+                                <h1 class="text-5xl md:text-7xl font-display font-bold tracking-tighter group-hover:translate-x-2 transition-transform">Lista Digital</h1>
+                            </div>
+                            <div class="col-span-12 md:col-span-2 text-right text-xs font-mono text-obsidian-400">4.5rem / 700</div>
+                        </div>
+                        <div class="grid grid-cols-12 p-6 md:p-8 items-baseline border-b border-obsidian-100 hover:bg-obsidian-50/50 transition-colors group motion-enter delay-100">
+                            <div class="col-span-12 md:col-span-2 text-xs font-mono text-obsidian-400 mb-2 md:mb-0">H2 / Section</div>
+                            <div class="col-span-12 md:col-span-8">
+                                <h2 class="text-4xl font-display font-medium tracking-tight group-hover:translate-x-2 transition-transform">Suas Compras</h2>
+                            </div>
+                            <div class="col-span-12 md:col-span-2 text-right text-xs font-mono text-obsidian-400">2.25rem / 500</div>
+                        </div>
+                        <div class="grid grid-cols-12 p-6 md:p-8 items-baseline border-b border-obsidian-100 hover:bg-obsidian-50/50 transition-colors group motion-enter delay-200">
+                            <div class="col-span-12 md:col-span-2 text-xs font-mono text-obsidian-400 mb-2 md:mb-0">H3 / Card</div>
+                            <div class="col-span-12 md:col-span-8">
+                                <h3 class="text-2xl font-display font-normal tracking-tight group-hover:translate-x-2 transition-transform">Detalhes do Item</h3>
+                            </div>
+                            <div class="col-span-12 md:col-span-2 text-right text-xs font-mono text-obsidian-400">1.5rem / 400</div>
+                        </div>
+                        <div class="grid grid-cols-12 p-6 md:p-8 items-baseline border-b border-obsidian-100 hover:bg-obsidian-50/50 transition-colors motion-enter delay-300">
+                            <div class="col-span-12 md:col-span-2 text-xs font-mono text-obsidian-400 mb-2 md:mb-0">Body / Large</div>
+                            <div class="col-span-12 md:col-span-8">
+                                <p class="text-lg font-light text-obsidian-600 leading-relaxed max-w-3xl">A essência do sistema está na capacidade de adaptar-se. Priorizamos legibilidade e espaço negativo, permitindo que o conteúdo respire e comunique por si.</p>
+                            </div>
+                            <div class="col-span-12 md:col-span-2 text-right text-xs font-mono text-obsidian-400">1.125rem / 300</div>
+                        </div>
+                        <div class="grid grid-cols-12 p-6 md:p-8 items-baseline hover:bg-obsidian-50/50 transition-colors motion-enter delay-500">
+                            <div class="col-span-12 md:col-span-2 text-xs font-mono text-obsidian-400 mb-2 md:mb-0">Utility / Mono</div>
+                            <div class="col-span-12 md:col-span-8">
+                                <span class="text-xs font-mono uppercase tracking-widest text-obsidian-500 border border-obsidian-200 px-3 py-1.5 rounded-md bg-obsidian-50">Status: Ativo</span>
+                                <span class="ml-4 text-xs font-mono text-obsidian-400">v2.0.0</span>
+                            </div>
+                            <div class="col-span-12 md:col-span-2 text-right text-xs font-mono text-obsidian-400">0.75rem / 500</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== 02 / COLORS ====== -->
+        <section id="colors" class="py-24 border-b border-obsidian-200 bg-obsidian-50/30">
+            <div class="max-w-[1440px] mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-12 gap-12">
+                <div class="md:col-span-3">
+                    <h2 class="text-xs font-mono uppercase tracking-widest text-obsidian-400 mb-4 sticky top-24">02 / Cores</h2>
+                </div>
+                <div class="md:col-span-9 space-y-12">
+
+                    <!-- Neutral Scale -->
+                    <div>
+                        <h3 class="text-sm font-semibold mb-6">Escala Obsidian</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-5 gap-4">
+                            <div class="bg-obsidian-950 text-white aspect-square p-5 flex flex-col justify-between rounded-xl shadow-lg motion-enter hover:scale-105 transition-transform cursor-default">
+                                <span class="font-display font-bold">950</span>
+                                <div class="text-xs font-mono opacity-60">#0A0A09<br>Primary Text</div>
+                            </div>
+                            <div class="bg-obsidian-800 text-white aspect-square p-5 flex flex-col justify-between rounded-xl motion-enter delay-100 hover:scale-105 transition-transform cursor-default">
+                                <span class="font-display font-bold">800</span>
+                                <div class="text-xs font-mono opacity-60">#222220<br>Heavy</div>
+                            </div>
+                            <div class="bg-obsidian-500 text-white aspect-square p-5 flex flex-col justify-between rounded-xl motion-enter delay-200 hover:scale-105 transition-transform cursor-default">
+                                <span class="font-display font-bold">500</span>
+                                <div class="text-xs font-mono opacity-70">#6B6B5E<br>Muted</div>
+                            </div>
+                            <div class="bg-obsidian-200 text-obsidian-700 aspect-square p-5 flex flex-col justify-between rounded-xl motion-enter delay-300 hover:scale-105 transition-transform cursor-default">
+                                <span class="font-display font-bold">200</span>
+                                <div class="text-xs font-mono opacity-70">#DDDDD5<br>Borders</div>
+                            </div>
+                            <div class="bg-white text-obsidian-900 border border-obsidian-100 aspect-square p-5 flex flex-col justify-between rounded-xl motion-enter delay-500 hover:scale-105 transition-transform cursor-default">
+                                <span class="font-display font-bold">White</span>
+                                <div class="text-xs font-mono text-obsidian-400">#FFFFFF<br>Surface</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Accent Colors -->
+                    <div>
+                        <h3 class="text-sm font-semibold mb-6">Acentos Semânticos</h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
+                            <div class="glow-card bg-gradient-to-br from-[#E8A838] to-[#D4922E] text-white p-6 rounded-xl motion-enter" onmousemove="glowTrack(event, this)">
+                                <span class="font-display font-bold block mb-1">Warm</span>
+                                <span class="text-xs font-mono opacity-80">#E8A838</span>
+                                <p class="text-xs mt-3 opacity-80">Destaque, CTA primário</p>
+                            </div>
+                            <div class="glow-card bg-gradient-to-br from-[#C87941] to-[#A86232] text-white p-6 rounded-xl motion-enter delay-100" onmousemove="glowTrack(event, this)">
+                                <span class="font-display font-bold block mb-1">Copper</span>
+                                <span class="text-xs font-mono opacity-80">#C87941</span>
+                                <p class="text-xs mt-3 opacity-80">Alertas, atenção</p>
+                            </div>
+                            <div class="glow-card bg-gradient-to-br from-[#7A9E7E] to-[#5E8362] text-white p-6 rounded-xl motion-enter delay-200" onmousemove="glowTrack(event, this)">
+                                <span class="font-display font-bold block mb-1">Sage</span>
+                                <span class="text-xs font-mono opacity-80">#7A9E7E</span>
+                                <p class="text-xs mt-3 opacity-80">Sucesso, confirmação</p>
+                            </div>
+                            <div class="glow-card bg-gradient-to-br from-[#6BA3BE] to-[#4E869E] text-white p-6 rounded-xl motion-enter delay-300" onmousemove="glowTrack(event, this)">
+                                <span class="font-display font-bold block mb-1">Sky</span>
+                                <span class="text-xs font-mono opacity-80">#6BA3BE</span>
+                                <p class="text-xs mt-3 opacity-80">Info, links</p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Gradient Bar -->
+                    <div class="h-20 bg-gradient-to-r from-obsidian-950 via-obsidian-500 via-accent-warm to-obsidian-50 rounded-xl shadow-inner flex items-center justify-center motion-enter">
+                        <span class="mix-blend-difference text-white font-mono text-xs uppercase tracking-[0.3em]">Gradient Spectrum</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== 03 / COMPONENTS ====== -->
+        <section id="components" class="py-24 border-b border-obsidian-200 bg-white">
+            <div class="max-w-[1440px] mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-12 gap-12">
+                <div class="md:col-span-3">
+                    <h2 class="text-xs font-mono uppercase tracking-widest text-obsidian-400 mb-4 sticky top-24">03 / Componentes</h2>
+                </div>
+                <div class="md:col-span-9 space-y-16">
+
+                    <!-- Buttons -->
+                    <div class="motion-enter">
+                        <h3 class="text-sm font-semibold mb-8">Botões</h3>
+                        <div class="flex flex-wrap items-center gap-4">
+                            <button class="px-6 py-3 bg-obsidian-900 text-white rounded-lg text-sm font-medium hover:bg-obsidian-800 transition-all hover:scale-105 active:scale-95 flex items-center gap-2 group shadow-lg shadow-obsidian-900/10">
+                                Ação Principal
+                                <iconify-icon icon="solar:arrow-right-linear" class="group-hover:translate-x-1 transition-transform"></iconify-icon>
+                            </button>
+                            <button class="px-6 py-3 bg-accent-warm text-white rounded-lg text-sm font-medium hover:bg-[#D4922E] transition-all hover:scale-105 active:scale-95 shadow-lg shadow-accent-warm/20">
+                                Adicionar Item
+                            </button>
+                            <button class="px-6 py-3 border border-obsidian-300 text-obsidian-900 rounded-lg text-sm font-medium hover:border-obsidian-900 hover:bg-obsidian-50 transition-all">
+                                Secundário
+                            </button>
+                            <button class="px-6 py-3 text-obsidian-500 hover:text-obsidian-900 hover:bg-obsidian-50 rounded-lg text-sm font-medium transition-all">
+                                Cancelar
+                            </button>
+                            <button class="beam-btn">
+                                <span class="beam-spinner"></span>
+                                <span class="beam-inner">
+                                    <iconify-icon icon="solar:stars-minimalistic-linear"></iconify-icon>
+                                    AI Sugerir
+                                </span>
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Inputs & Cards Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <!-- Inputs -->
+                        <div class="p-8 border border-obsidian-100 rounded-2xl bg-obsidian-50/30 motion-enter">
+                            <h4 class="text-xs font-mono uppercase text-obsidian-400 mb-6">Campos de Entrada</h4>
+                            <div class="space-y-5">
+                                <div class="relative group">
+                                    <label class="block text-xs font-semibold uppercase tracking-wider text-obsidian-600 mb-2 group-focus-within:text-obsidian-900 transition-colors">Nome do Item</label>
+                                    <input type="text" placeholder="Ex: Arroz Integral 1kg" class="w-full bg-white border border-obsidian-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-obsidian-900 focus:ring-2 focus:ring-obsidian-100 transition-all">
+                                </div>
+                                <div class="relative">
+                                    <label class="block text-xs font-semibold uppercase tracking-wider text-obsidian-600 mb-2">Buscar</label>
+                                    <input type="text" placeholder="Buscar na lista..." class="w-full bg-white border border-obsidian-200 rounded-full px-4 pl-10 py-3 text-sm outline-none focus:border-obsidian-900 focus:ring-2 focus:ring-obsidian-100 transition-all">
+                                    <iconify-icon icon="solar:magnifer-linear" class="absolute left-3.5 bottom-3.5 text-obsidian-400"></iconify-icon>
+                                </div>
+                                <div class="relative">
+                                    <label class="block text-xs font-semibold uppercase tracking-wider text-obsidian-600 mb-2">Categoria</label>
+                                    <select class="w-full bg-white border border-obsidian-200 rounded-lg px-4 py-3 text-sm outline-none focus:border-obsidian-900 transition-all appearance-none">
+                                        <option>Selecionar categoria</option>
+                                        <option>Frutas & Verduras</option>
+                                        <option>Laticínios</option>
+                                        <option>Padaria</option>
+                                    </select>
+                                    <iconify-icon icon="solar:alt-arrow-down-linear" class="absolute right-3 top-[38px] text-obsidian-400 pointer-events-none"></iconify-icon>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Card Examples -->
+                        <div class="space-y-4 motion-enter delay-200">
+                            <h4 class="text-xs font-mono uppercase text-obsidian-400 mb-2">Cards & Containers</h4>
+
+                            <!-- Glass Card -->
+                            <div class="glow-card p-6 rounded-xl group cursor-pointer" onmousemove="glowTrack(event, this)">
+                                <div class="flex items-start justify-between mb-3">
+                                    <div class="w-10 h-10 rounded-full bg-accent-warm/10 flex items-center justify-center">
+                                        <iconify-icon icon="solar:cart-large-2-bold-duotone" class="text-xl text-accent-warm"></iconify-icon>
+                                    </div>
+                                    <span class="text-[10px] font-mono uppercase text-obsidian-400 bg-obsidian-50 px-2 py-1 rounded">Ativa</span>
+                                </div>
+                                <h3 class="text-lg font-display font-medium mb-1 group-hover:text-obsidian-700 transition-colors">Lista Semanal</h3>
+                                <p class="text-sm text-obsidian-500 mb-4">12 itens • Atualizada há 2h</p>
+                                <div class="flex items-center gap-2 text-xs font-bold uppercase tracking-wider text-accent-warm">
+                                    Ver Detalhes
+                                    <iconify-icon icon="solar:arrow-right-linear" class="group-hover:translate-x-1 transition-transform"></iconify-icon>
+                                </div>
+                            </div>
+
+                            <!-- Dark Card -->
+                            <div class="bg-obsidian-900 text-white p-6 rounded-xl relative overflow-hidden group">
+                                <div class="absolute top-0 right-0 w-48 h-48 bg-obsidian-800 rounded-full blur-3xl -translate-y-1/2 translate-x-1/2 opacity-50"></div>
+                                <div class="relative z-10">
+                                    <h4 class="font-display font-medium mb-3">Resumo da Compra</h4>
+                                    <ul class="space-y-2">
+                                        <li class="flex items-center gap-2 text-sm opacity-70 hover:opacity-100 transition-opacity">
+                                            <iconify-icon icon="solar:check-circle-bold" class="text-accent-sage"></iconify-icon>
+                                            8 itens comprados
+                                        </li>
+                                        <li class="flex items-center gap-2 text-sm opacity-70 hover:opacity-100 transition-opacity">
+                                            <iconify-icon icon="solar:clock-circle-linear" class="text-accent-warm"></iconify-icon>
+                                            4 itens pendentes
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Selection & Toggles -->
+                    <div class="p-8 border border-obsidian-100 rounded-2xl motion-enter">
+                        <h4 class="text-xs font-mono uppercase text-obsidian-400 mb-6">Seleção & Navegação</h4>
+                        <div class="flex flex-wrap gap-8 items-center">
+                            <!-- Checkbox -->
+                            <label class="flex items-center gap-3 cursor-pointer group" onclick="this.querySelector('.cb-dot').classList.toggle('opacity-0')">
+                                <div class="w-5 h-5 border-2 border-obsidian-300 rounded flex items-center justify-center group-hover:border-obsidian-900 transition-colors">
+                                    <div class="w-3 h-3 bg-obsidian-900 rounded-sm opacity-0 cb-dot transition-opacity"></div>
+                                </div>
+                                <span class="text-sm text-obsidian-600">Checkbox</span>
+                            </label>
+
+                            <!-- Toggle -->
+                            <label class="flex items-center gap-3 cursor-pointer" onclick="const bg=this.querySelector('.toggle-bg');const dot=this.querySelector('.toggle-dot');bg.classList.toggle('bg-accent-sage');bg.classList.toggle('bg-obsidian-300');dot.classList.toggle('translate-x-5');">
+                                <div class="relative w-11 h-6 bg-obsidian-300 rounded-full transition-colors toggle-bg">
+                                    <div class="absolute left-0.5 top-0.5 w-5 h-5 bg-white rounded-full transition-transform shadow-sm toggle-dot"></div>
+                                </div>
+                                <span class="text-sm text-obsidian-600">Toggle</span>
+                            </label>
+
+                            <!-- Tabs -->
+                            <div class="inline-flex bg-obsidian-100 p-1 rounded-full">
+                                <button class="px-5 py-2 rounded-full bg-white shadow-sm text-xs font-semibold text-obsidian-900">Todas</button>
+                                <button class="px-5 py-2 rounded-full text-xs font-medium text-obsidian-500 hover:text-obsidian-900 transition-colors">Pendentes</button>
+                                <button class="px-5 py-2 rounded-full text-xs font-medium text-obsidian-500 hover:text-obsidian-900 transition-colors">Compradas</button>
+                            </div>
+
+                            <!-- Badge -->
+                            <span class="px-3 py-1 rounded-full bg-accent-sage/10 text-accent-sage text-[10px] uppercase font-bold tracking-wider">Concluído</span>
+                            <span class="px-3 py-1 rounded-full bg-accent-warm/10 text-accent-copper text-[10px] uppercase font-bold tracking-wider">Pendente</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== 04 / ICONS ====== -->
+        <section id="icons" class="py-24 border-b border-obsidian-200 bg-obsidian-50/30">
+            <div class="max-w-[1440px] mx-auto px-6 md:px-12 grid grid-cols-1 md:grid-cols-12 gap-12">
+                <div class="md:col-span-3">
+                    <h2 class="text-xs font-mono uppercase tracking-widest text-obsidian-400 mb-4 sticky top-24">04 / Ícones</h2>
+                </div>
+                <div class="md:col-span-9">
+                    <div class="grid grid-cols-3 md:grid-cols-6 gap-6">
+                        <div class="flex flex-col items-center gap-3 p-4 hover:bg-white rounded-xl transition-all group motion-enter">
+                            <iconify-icon icon="solar:home-smile-linear" class="text-3xl text-obsidian-400 group-hover:text-obsidian-900 group-hover:scale-110 transition-all"></iconify-icon>
+                            <span class="text-[10px] font-mono text-obsidian-400">home</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 p-4 hover:bg-white rounded-xl transition-all group motion-enter delay-100">
+                            <iconify-icon icon="solar:cart-large-2-linear" class="text-3xl text-obsidian-400 group-hover:text-accent-warm group-hover:scale-110 transition-all"></iconify-icon>
+                            <span class="text-[10px] font-mono text-obsidian-400">cart</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 p-4 hover:bg-white rounded-xl transition-all group motion-enter delay-200">
+                            <iconify-icon icon="solar:check-circle-linear" class="text-3xl text-obsidian-400 group-hover:text-accent-sage group-hover:scale-110 transition-all"></iconify-icon>
+                            <span class="text-[10px] font-mono text-obsidian-400">check</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 p-4 hover:bg-white rounded-xl transition-all group motion-enter delay-100">
+                            <iconify-icon icon="solar:share-linear" class="text-3xl text-obsidian-400 group-hover:text-accent-sky group-hover:scale-110 transition-all"></iconify-icon>
+                            <span class="text-[10px] font-mono text-obsidian-400">share</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 p-4 hover:bg-white rounded-xl transition-all group motion-enter delay-200">
+                            <iconify-icon icon="solar:settings-linear" class="text-3xl text-obsidian-400 group-hover:text-obsidian-900 group-hover:rotate-90 transition-all"></iconify-icon>
+                            <span class="text-[10px] font-mono text-obsidian-400">settings</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 p-4 hover:bg-white rounded-xl transition-all group motion-enter delay-300">
+                            <iconify-icon icon="solar:user-circle-linear" class="text-3xl text-obsidian-400 group-hover:text-accent-copper group-hover:scale-110 transition-all"></iconify-icon>
+                            <span class="text-[10px] font-mono text-obsidian-400">user</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 p-4 hover:bg-white rounded-xl transition-all group motion-enter">
+                            <iconify-icon icon="solar:bell-linear" class="text-3xl text-obsidian-400 group-hover:text-accent-warm group-hover:scale-110 transition-all"></iconify-icon>
+                            <span class="text-[10px] font-mono text-obsidian-400">bell</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 p-4 hover:bg-white rounded-xl transition-all group motion-enter delay-100">
+                            <iconify-icon icon="solar:trash-bin-trash-linear" class="text-3xl text-obsidian-400 group-hover:text-red-500 group-hover:scale-110 transition-all"></iconify-icon>
+                            <span class="text-[10px] font-mono text-obsidian-400">delete</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 p-4 hover:bg-white rounded-xl transition-all group motion-enter delay-200">
+                            <iconify-icon icon="solar:pen-new-square-linear" class="text-3xl text-obsidian-400 group-hover:text-accent-sky group-hover:scale-110 transition-all"></iconify-icon>
+                            <span class="text-[10px] font-mono text-obsidian-400">edit</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 p-4 hover:bg-white rounded-xl transition-all group motion-enter delay-100">
+                            <iconify-icon icon="solar:add-circle-linear" class="text-3xl text-obsidian-400 group-hover:text-accent-sage group-hover:scale-110 transition-all"></iconify-icon>
+                            <span class="text-[10px] font-mono text-obsidian-400">add</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 p-4 hover:bg-white rounded-xl transition-all group motion-enter delay-200">
+                            <iconify-icon icon="solar:magnifer-linear" class="text-3xl text-obsidian-400 group-hover:text-obsidian-900 group-hover:scale-110 transition-all"></iconify-icon>
+                            <span class="text-[10px] font-mono text-obsidian-400">search</span>
+                        </div>
+                        <div class="flex flex-col items-center gap-3 p-4 hover:bg-white rounded-xl transition-all group motion-enter delay-300">
+                            <iconify-icon icon="solar:logout-2-linear" class="text-3xl text-obsidian-400 group-hover:text-obsidian-900 group-hover:translate-x-1 transition-all"></iconify-icon>
+                            <span class="text-[10px] font-mono text-obsidian-400">logout</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ====== 05 / MOTION ====== -->
+        <section class="py-24 bg-obsidian-900 text-white relative overflow-hidden">
+            <div class="absolute inset-0 pointer-events-none">
+                <div class="absolute top-1/3 left-1/4 w-[400px] h-[400px] bg-accent-warm/10 rounded-full blur-[120px]"></div>
+                <div class="absolute bottom-1/3 right-1/4 w-[300px] h-[300px] bg-accent-sky/10 rounded-full blur-[100px]"></div>
+            </div>
+            <div class="max-w-[1440px] mx-auto px-6 md:px-12 text-center relative z-10">
+                <span class="text-xs font-mono uppercase tracking-widest text-obsidian-500 block mb-6 motion-enter">05 / Motion</span>
+                <h2 class="text-5xl md:text-8xl font-display font-bold tracking-tighter mb-6">
+                    <div class="hero-mask"><span class="block">Tudo é</span></div><br>
+                    <div class="hero-mask"><span class="block text-accent-warm">Movimento.</span></div>
+                </h2>
+                <p class="text-obsidian-400 max-w-xl mx-auto text-lg motion-enter delay-300">
+                    Usando IntersectionObserver para revelações em cascata, garantindo que cada elemento entre em cena com propósito e elegância.
+                </p>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 max-w-4xl mx-auto">
+                    <div class="border border-white/10 p-8 rounded-2xl motion-enter delay-100 hover:border-white/20 transition-colors" style="animation: float 6s ease-in-out infinite;">
+                        <iconify-icon icon="solar:rocket-bold-duotone" class="text-4xl text-accent-warm mb-4"></iconify-icon>
+                        <h4 class="font-display font-medium text-lg mb-2">Reveal on Scroll</h4>
+                        <p class="text-sm text-obsidian-400">Elementos entram com blur e slide-up suaves.</p>
+                    </div>
+                    <div class="border border-white/10 p-8 rounded-2xl motion-enter delay-300 hover:border-white/20 transition-colors" style="animation: float 6s ease-in-out infinite 1s;">
+                        <iconify-icon icon="solar:cursor-bold-duotone" class="text-4xl text-accent-sage mb-4"></iconify-icon>
+                        <h4 class="font-display font-medium text-lg mb-2">Hover Feedback</h4>
+                        <p class="text-sm text-obsidian-400">Cartões com glow tracking e micro-escala.</p>
+                    </div>
+                    <div class="border border-white/10 p-8 rounded-2xl motion-enter delay-500 hover:border-white/20 transition-colors" style="animation: float 6s ease-in-out infinite 2s;">
+                        <iconify-icon icon="solar:magic-stick-3-bold-duotone" class="text-4xl text-accent-sky mb-4"></iconify-icon>
+                        <h4 class="font-display font-medium text-lg mb-2">Beam Buttons</h4>
+                        <p class="text-sm text-obsidian-400">Rotação conic-gradient para destaque premium.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Footer Marquee -->
+        <div class="overflow-hidden py-10 bg-obsidian-950 text-white/20 text-xs font-mono uppercase tracking-[0.3em]">
+            <div class="marquee-track">
+                <span class="mx-8">• Obsidian DS v2.0</span>
+                <span class="mx-8">• Projeto Lista</span>
+                <span class="mx-8">• Motion Styled</span>
+                <span class="mx-8">• Responsive</span>
+                <span class="mx-8">• Acessível</span>
+                <span class="mx-8">• 2026</span>
+                <span class="mx-8">• Obsidian DS v2.0</span>
+                <span class="mx-8">• Projeto Lista</span>
+                <span class="mx-8">• Motion Styled</span>
+                <span class="mx-8">• Responsive</span>
+                <span class="mx-8">• Acessível</span>
+                <span class="mx-8">• 2026</span>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="bg-obsidian-950 pt-16 pb-8 text-center">
+        <div class="motion-enter">
+            <h2 class="text-[12vw] leading-none font-display font-bold tracking-tighter text-obsidian-900 select-none hover:text-obsidian-700 transition-colors duration-1000 cursor-default">
+                OBSIDIAN
+            </h2>
+            <div class="mt-6 text-obsidian-600 text-xs font-mono uppercase tracking-widest">
+                Design System v2.0 • Projeto Lista © 2026
+            </div>
+        </div>
+    </footer>
+
+    <!-- ====== JAVASCRIPT ====== -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+
+            // 1. Scroll Reveal Observer
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { threshold: 0.1, rootMargin: '0px 0px -40px 0px' });
+
+            document.querySelectorAll('.motion-enter, .hero-mask').forEach(el => observer.observe(el));
+
+            // 2. Trigger hero immediately
+            setTimeout(() => {
+                document.querySelectorAll('.hero-mask').forEach(el => el.classList.add('active'));
+                document.querySelectorAll('.motion-enter').forEach(el => {
+                    if (el.getBoundingClientRect().top < window.innerHeight) {
+                        el.classList.add('active');
+                    }
+                });
+            }, 300);
+
+            // 3. Navbar scroll effect
+            let lastScroll = 0;
+            const navbar = document.getElementById('navbar');
+            window.addEventListener('scroll', () => {
+                const curr = window.scrollY;
+                if (curr > 100) {
+                    navbar.style.boxShadow = '0 4px 20px -4px rgba(0,0,0,0.06)';
+                } else {
+                    navbar.style.boxShadow = 'none';
+                }
+                lastScroll = curr;
+            });
+        });
+
+        // Glow tracking for cards
+        function glowTrack(e, el) {
+            const rect = el.getBoundingClientRect();
+            el.style.setProperty('--x', `${e.clientX - rect.left}px`);
+            el.style.setProperty('--y', `${e.clientY - rect.top}px`);
+        }
+    </script>
+</body>
+</html>

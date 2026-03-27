@@ -49,10 +49,10 @@ def generate_base64_qr(url):
 # ────────────────────────── core views ───────────────────────────
 
 def home(request):
-    """Página de destino (Landing Page) para usuários não logados."""
+    """Nova Landing Page Premium como index da aplicação."""
     if request.user.is_authenticated:
         return redirect('shopping:dashboard_redirect')
-    return render(request, 'shopping/home.html')
+    return render(request, 'shopping/landing.html')
 
 
 @login_required
@@ -83,11 +83,16 @@ def index(request):
             messages.success(request, 'Lista criada com sucesso!')
             return redirect('shopping:list_detail', uuid=new_list.uuid)
 
-    return render(request, 'shopping/list_index.html', {
+    # Cálculo de estatísticas rápidas
+    total_items = sum(lst.items.count() for lst in own_lists) + \
+                  sum(lst.items.count() for lst in shared_lists)
+
+    return render(request, 'shopping/index.html', {
         'own_lists': own_lists,
         'shared_lists': shared_lists,
         'templates': templates,
         'form': form,
+        'total_items': total_items, # Passando estatística para o template
     })
 
 

@@ -2,137 +2,267 @@
 {% block title %}Minhas Listas · Projeto Lista{% endblock %}
 
 {% block content %}
-<div class="page-header" style="margin-bottom: 2rem; display: flex; justify-content: space-between; align-items: center;">
-  <div>
-    <h1 class="page-title" style="font-size: 1.75rem; font-weight: 800; letter-spacing: -0.03em;">Suas Listas</h1>
-    <p class="page-subtitle" style="color: var(--text-muted); font-size: 0.9rem;">Gerencie seus materiais escolares e de escritório</p>
-  </div>
-  <div style="display: flex; gap: 0.5rem; align-items: center;">
-    <button class="btn btn-primary" id="btn-nova-lista" onclick="toggleModal('modal-nova-lista')" style="border-radius: 12px; padding: 0.8rem 1.5rem;">
-      + Criar Nova
-    </button>
-    <!-- Botão para admin, visível apenas para staff -->
-    {% if user.is_staff %}
-      <a href="{% url 'shopping:admin_catalogo' %}" class="btn btn-secondary" title="Acessar catálogo admin">
-        Acessar Admin
-      </a>
-    {% endif %}
-  </div>
+<style>
+  /* Local Aura Components for Dashboard */
+  .glass-card {
+    background: rgba(255, 255, 255, 0.6);
+    backdrop-filter: blur(16px);
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    border-radius: 32px;
+    transition: all 0.6s var(--ease-out-expo);
+  }
+  .glass-card:hover {
+    transform: translateY(-8px);
+    background: rgba(255, 255, 255, 0.95);
+    box-shadow: 0 40px 80px -20px rgba(0, 0, 0, 0.08);
+    border-color: rgba(0, 0, 0, 0.1);
+  }
+  .btn-beam {
+    position: relative;
+    padding: 1px;
+    border-radius: 9999px;
+    overflow: hidden;
+    display: inline-flex;
+    cursor: pointer;
+  }
+  .btn-beam-bg {
+    position: absolute;
+    inset: -100%;
+    background: conic-gradient(from 0deg, transparent 0 340deg, var(--aura-blue) 360deg);
+    animation: spin-slow 4s linear infinite;
+  }
+  .btn-beam-inner {
+    position: relative;
+    background: white;
+    color: black;
+    border-radius: 9999px;
+    padding: 0.8rem 2rem;
+    font-weight: 700;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    z-index: 1;
+    transition: all 0.3s;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+  }
+  @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
+  
+  .stats-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--aura-blue); }
+  
+  .modal-glass {
+    background: rgba(255, 255, 255, 0.8);
+    backdrop-filter: blur(24px);
+    border: 1px solid rgba(255, 255, 255, 0.5);
+    box-shadow: 0 50px 100px -20px rgba(0, 0, 0, 0.2);
+  }
+</style>
+
+<div class="max-w-7xl mx-auto px-6 pt-12">
+    <!-- Header Section -->
+    <header class="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-16 reveal">
+      <div>
+        <span class="mono-label text-zinc-400 block mb-2">Visão Geral</span>
+        <h1 class="text-5xl font-black tracking-tighter text-black uppercase">Minhas <span class="text-aura-blue">Listas</span></h1>
+      </div>
+      
+      <div class="btn-beam" onclick="toggleModal('modal-nova-lista')">
+        <div class="btn-beam-bg"></div>
+        <div class="btn-beam-inner">
+          <iconify-icon icon="solar:add-circle-bold-duotone" class="text-xl"></iconify-icon>
+          Criar Nova Lista
+        </div>
+      </div>
+    </header>
+
+    <!-- Stats Section -->
+    <section class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
+      <div class="glass-card p-8 reveal" style="transition-delay: 0.1s;">
+        <div class="flex items-center justify-between mb-4">
+          <span class="mono-label">Total de Listas</span>
+          <div class="stats-dot animate-pulse"></div>
+        </div>
+        <div class="text-4xl font-black text-black">{{ own_lists.count|add:shared_lists.count }}</div>
+        <p class="text-xs text-zinc-400 mt-2 uppercase tracking-widest font-bold">Ativas no sistema</p>
+      </div>
+      
+      <div class="glass-card p-8 reveal" style="transition-delay: 0.2s;">
+        <div class="flex items-center justify-between mb-4">
+          <span class="mono-label text-aura-blue">Itens Totais</span>
+          <iconify-icon icon="solar:box-minimalistic-bold-duotone" class="text-aura-blue text-xl"></iconify-icon>
+        </div>
+        <div class="text-4xl font-black text-black">
+            {{ total_items|default:"0" }}
+        </div>
+        <p class="text-xs text-zinc-400 mt-2 uppercase tracking-widest font-bold">Aguardando picking</p>
+      </div>
+
+      <div class="glass-card p-8 reveal" style="transition-delay: 0.3s;">
+        <div class="flex items-center justify-between mb-4">
+          <span class="mono-label text-green-500">Status Geral</span>
+          <iconify-icon icon="solar:shield-check-bold-duotone" class="text-green-500 text-xl"></iconify-icon>
+        </div>
+        <div class="text-[10px] font-black text-black uppercase tracking-widest leading-none">
+            Sincronização Ativa<br><span class="text-green-500">100% cloud secure</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Lists Grid -->
+    <section class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8 mb-24">
+      <!-- Próprias Listas -->
+      {% for lst in own_lists %}
+      <div class="glass-card p-8 flex flex-col justify-between group cursor-pointer reveal" 
+           data-url="{% url 'shopping:list_detail' lst.uuid %}"
+           onclick="handleCardClick(event, this)">
+        <div>
+            <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-black text-white flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform">
+                    {% if lst.is_locked %}
+                        <iconify-icon icon="solar:lock-bold-duotone"></iconify-icon>
+                    {% else %}
+                        <iconify-icon icon="solar:document-text-bold-duotone"></iconify-icon>
+                    {% endif %}
+                </div>
+                
+                <div class="flex gap-2">
+                    {% if lst.is_locked %}
+                        <span class="text-[9px] font-black uppercase tracking-widest bg-green-50 text-green-600 px-3 py-1 rounded-full border border-green-100">Finalizada</span>
+                    {% endif %}
+                    
+                    <form action="{% url 'shopping:list_delete' lst.uuid %}" method="post" onsubmit="return confirm('Excluir esta lista permanentemente?')" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                        {% csrf_token %}
+                        <button type="submit" class="text-zinc-300 hover:text-red-500 transition-colors">
+                            <iconify-icon icon="solar:trash-bin-minimalistic-bold" class="text-xl"></iconify-icon>
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <h3 class="text-xl font-black tracking-tight text-black mb-1">{{ lst.name }}</h3>
+            <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-6">{{ lst.items.count }} itens no carrinho</p>
+        </div>
+
+        <div class="pt-6 border-t border-black/5 flex justify-between items-end">
+            <div>
+                <span class="mono-label text-[9px] block">Orçamento</span>
+                <span class="text-sm font-bold text-black">{% if lst.budget %}R$ {{ lst.budget }}{% else %}Não definido{% endif %}</span>
+            </div>
+            <iconify-icon icon="solar:arrow-right-up-linear" class="text-xl text-zinc-300 group-hover:text-aura-blue group-hover:translate-x-1 group-hover:-translate-y-1 transition-all"></iconify-icon>
+        </div>
+      </div>
+      {% endfor %}
+
+      <!-- Listas Compartilhadas -->
+      {% for lst in shared_lists %}
+      <div class="glass-card p-8 flex flex-col justify-between group cursor-pointer border-dashed reveal" 
+           data-url="{% url 'shopping:list_detail' lst.uuid %}"
+           onclick="handleCardClick(event, this)">
+        <div>
+            <div class="flex justify-between items-start mb-6">
+                <div class="w-12 h-12 rounded-2xl bg-aura-blue text-white flex items-center justify-center text-2xl group-hover:rotate-12 transition-transform">
+                    <iconify-icon icon="solar:users-group-rounded-bold-duotone"></iconify-icon>
+                </div>
+                
+                <form action="{% url 'shopping:shared_list_remove' lst.uuid %}" method="post" onsubmit="return confirm('Remover esta lista compartilhada?')" class="opacity-0 group-hover:opacity-100 transition-opacity">
+                    {% csrf_token %}
+                    <button type="submit" class="text-zinc-300 hover:text-red-500 transition-colors">
+                        <iconify-icon icon="solar:trash-bin-minimalistic-bold" class="text-xl"></iconify-icon>
+                    </button>
+                </form>
+            </div>
+
+            <h3 class="text-xl font-black tracking-tight text-black mb-1">{{ lst.name }}</h3>
+            <p class="text-xs font-bold text-zinc-400 uppercase tracking-widest mb-2">Compartilhada por <span class="text-black">{{ lst.user.username }}</span></p>
+        </div>
+
+        <div class="pt-6 border-t border-black/5 flex justify-between items-end">
+            <span class="mono-label text-[9px]">Acesso Colaborativo</span>
+            <iconify-icon icon="solar:arrow-right-up-linear" class="text-xl text-zinc-300 group-hover:text-aura-blue group-hover:translate-x-1 group-hover:-translate-y-1 transition-all"></iconify-icon>
+        </div>
+      </div>
+      {% endfor %}
+
+      {% if not own_lists and not shared_lists %}
+      <div class="col-span-full py-32 text-center reveal">
+        <div class="w-24 h-24 bg-zinc-50 rounded-full flex items-center justify-center mx-auto mb-8">
+            <iconify-icon icon="solar:folder-open-bold-duotone" class="text-4xl text-zinc-200"></iconify-icon>
+        </div>
+        <h3 class="text-2xl font-black tracking-tight text-black mb-2 uppercase">Sua mesa está vazia</h3>
+        <p class="text-zinc-400 max-w-sm mx-auto mb-8">Comece criando sua primeira lista inteligente para organizar seu material escolar ou de escritório.</p>
+        <div class="btn-beam" onclick="toggleModal('modal-nova-lista')">
+            <div class="btn-beam-bg"></div>
+            <div class="btn-beam-inner">Começar Agora</div>
+        </div>
+      </div>
+      {% endif %}
+    </section>
 </div>
 
 <!-- Modal Nova Lista -->
-<div id="modal-nova-lista" class="modal-overlay {% if not form.errors %}hidden{% endif %}" style="position: fixed; inset: 0; background: rgba(15, 23, 42, 0.4); backdrop-filter: blur(4px); z-index: 1000; display: flex; align-items: center; justify-content: center; padding: 1rem;">
-  <div class="card" style="width: 100%; max-width: 450px; padding: 2rem; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1);">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
-      <h2 style="font-size: 1.25rem; font-weight: 800;">Nova Lista de Compras</h2>
-      <button onclick="toggleModal('modal-nova-lista')" style="background: none; border: none; font-size: 1.5rem; color: var(--text-dim); cursor: pointer;">&times;</button>
-    </div>
-    <form method="post" class="modal-form">
-      {% csrf_token %}
-      {% for field in form %}
-      <div class="form-group" style="margin-bottom: 1.25rem;">
-        <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">{{ field.label }}</label>
-        {{ field }}
-        {% if field.errors %}
-        <ul class="form-errors" style="color: var(--danger); font-size: 0.8rem; margin-top: 0.5rem; list-style: none;">
-          {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
-        </ul>
-        {% endif %}
-      </div>
-      {% endfor %}
-      <div style="display: flex; gap: 0.75rem; margin-top: 1rem;">
-        <button type="button" onclick="toggleModal('modal-nova-lista')" class="btn btn-ghost" style="flex: 1;">Cancelar</button>
-        <button type="submit" class="btn btn-primary" id="btn-criar-lista" style="flex: 2;">Criar Lista</button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Grid de Listas -->
-<section style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 1.25rem;">
-  {% if own_lists %}
-    {% for lst in own_lists %}
-    <div class="card" 
-         onclick="if(event.target.tagName !== 'BUTTON') window.location.href='{% url 'shopping:list_detail' lst.uuid %}'" 
-         style="text-decoration: none; color: inherit; transition: all 0.2s; border-radius: 20px; padding: 1.5rem; display: flex; flex-direction: column; gap: 1rem; cursor: pointer; position: relative;">
-      
-      <div style="display: flex; justify-content: space-between; align-items: flex-start;">
-        <div style="width: 48px; height: 48px; background: rgba(249, 115, 22, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
-          {% if lst.is_locked %}🔒{% else %}📝{% endif %}
-        </div>
-        
-        <div style="display: flex; gap: 8px; align-items: center; position: relative; z-index: 10;">
-            {% if lst.is_locked %}
-              <span class="badge-swap" style="background: var(--success); color: #fff;">Finalizada</span>
-            {% endif %}
-            
-            <!-- Botão Excluir Lista -->
-            <form action="{% url 'shopping:list_delete' lst.uuid %}" method="post" onsubmit="return confirm('Excluir esta lista permanentemente?')" style="display: inline-block;">
-                {% csrf_token %}
-                <button type="submit" class="btn btn-ghost" style="color: var(--danger); border: none; padding: 4px; font-size: 1.1rem; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;" title="Excluir Lista">
-                    🗑️
-                </button>
-            </form>
-        </div>
-      </div>
-      
-      <div>
-        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">{{ lst.name }}</h3>
-        <p style="color: var(--text-muted); font-size: 0.85rem;">{{ lst.items.count }} itens no carrinho</p>
-      </div>
-
-      <div style="margin-top: auto; padding-top: 1rem; border-top: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center;">
-        <span style="font-weight: 700; color: var(--primary);">Ver lista →</span>
-        {% if lst.budget %}
-          <span style="font-size: 0.8rem; font-weight: 600; color: var(--text-dim);">ORÇ: R$ {{ lst.budget }}</span>
-        {% endif %}
-      </div>
-    </div>
-    {% endfor %}
-  {% endif %}
-
-  {% for lst in shared_lists %}
-    <div class="card" style="text-decoration: none; color: inherit; transition: all 0.2s; border-radius: 20px; padding: 1.5rem; border-style: dashed; position: relative; display: flex; flex-direction: column; gap: 1rem;">
-      <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 1rem;">
-        <div style="width: 48px; height: 48px; background: rgba(37, 99, 235, 0.1); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">🤝</div>
-        <!-- Botão Remover Compartilhamento -->
-        <form action="{% url 'shopping:shared_list_remove' lst.uuid %}" method="post" onsubmit="return confirm('Remover esta lista compartilhada da sua área?')" style="display: inline-block;">
-            {% csrf_token %}
-            <button type="submit" class="btn btn-ghost" style="color: var(--danger); border: none; padding: 4px; font-size: 1.1rem; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center;" title="Remover Lista Compartilhada">
-                🗑️
+<div id="modal-nova-lista" class="fixed inset-0 z-[200] flex items-center justify-center p-6 transition-all duration-500 {% if not form.errors %}invisible opacity-0{% endif %}">
+    <div class="absolute inset-0 bg-black/20 backdrop-blur-md" onclick="toggleModal('modal-nova-lista')"></div>
+    <div class="modal-glass w-full max-w-lg rounded-[48px] p-12 relative z-10 reveal active">
+        <div class="flex justify-between items-start mb-8">
+            <div>
+                <span class="mono-label text-zinc-400 block mb-2">Configuração</span>
+                <h2 class="text-3xl font-black tracking-tighter text-black uppercase">Nova <span class="text-aura-blue">Lista</span></h2>
+            </div>
+            <button onclick="toggleModal('modal-nova-lista')" class="w-10 h-10 rounded-full bg-black/5 hover:bg-black hover:text-white flex items-center justify-center transition-all">
+                <iconify-icon icon="solar:close-circle-bold" class="text-xl"></iconify-icon>
             </button>
-        </form>
-      </div>
-      <a href="{% url 'shopping:list_detail' lst.uuid %}" style="text-decoration: none; color: inherit;">
-        <h3 style="font-size: 1.1rem; font-weight: 700; margin-bottom: 0.25rem;">{{ lst.name }}</h3>
-        <p style="color: var(--text-muted); font-size: 0.85rem;">Compartilhada por <strong>{{ lst.user.username }}</strong></p>
-        <div style="margin-top: 1rem; padding-top: 1rem; border-top: 1px solid var(--border); font-weight: 700; color: var(--secondary);">Ver lista →</div>
-      </a>
-    </div>
-  {% endfor %}
+        </div>
 
-  {% if not own_lists and not shared_lists %}
-  <div class="card" style="grid-column: 1 / -1; text-align: center; padding: 4rem 2rem; border-style: dashed; background: transparent;">
-    <div style="font-size: 3rem; margin-bottom: 1rem;">✨</div>
-    <h3 style="font-weight: 800; margin-bottom: 0.5rem;">Sua mesa está vazia</h3>
-    <p style="color: var(--text-muted);">Crie sua primeira lista para começar a organizar seu material.</p>
-    <button class="btn btn-primary" onclick="toggleModal('modal-nova-lista')" style="margin-top: 1.5rem;">Criar Agora</button>
-  </div>
-  {% endif %}
-</section>
+        <form method="post" class="space-y-6">
+            {% csrf_token %}
+            {% for field in form %}
+            <div class="space-y-2">
+                <label class="mono-label text-black">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}
+                <ul class="text-[10px] font-bold text-red-500 uppercase tracking-widest list-none">
+                  {% for error in field.errors %}<li>{{ error }}</li>{% endfor %}
+                </ul>
+                {% endif %}
+            </div>
+            {% endfor %}
+            
+            <div class="pt-6 flex gap-4">
+                <button type="button" onclick="toggleModal('modal-nova-lista')" class="flex-1 px-8 py-4 rounded-full border border-black/5 text-[10px] font-bold uppercase tracking-widest hover:bg-zinc-50 transition-all">
+                    Cancelar
+                </button>
+                <div class="flex-[2] btn-beam">
+                    <div class="btn-beam-bg"></div>
+                    <button type="submit" class="btn-beam-inner w-full justify-center">
+                        Criar Lista Inteligente
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
 
 <script>
 function toggleModal(id) {
   const modal = document.getElementById(id);
-  modal.classList.toggle('hidden');
-}
-
-// Fechar modal clicando fora
-window.onclick = function(event) {
-  const modal = document.getElementById('modal-nova-lista');
-  if (event.target == modal) {
-    modal.classList.add('hidden');
+  if (modal.classList.contains('invisible')) {
+    modal.classList.remove('invisible', 'opacity-0');
+  } else {
+    modal.classList.add('invisible', 'opacity-0');
   }
 }
+
+function handleCardClick(event, element) {
+  if (event.target.closest('button') || event.target.closest('form')) return;
+  window.location.href = element.getAttribute('data-url');
+}
+
+// Intercept Django form fields to apply Aura styles
+document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('#modal-nova-lista input, #modal-nova-lista select').forEach(el => {
+        el.className = 'w-full bg-white/50 border border-black/5 rounded-2xl px-6 py-4 text-sm outline-none focus:border-aura-blue transition-all';
+    });
+});
 </script>
 {% endblock %}

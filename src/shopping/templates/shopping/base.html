@@ -1,58 +1,285 @@
 <!DOCTYPE html>
-<html lang="pt-br">
+<html lang="pt-br" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>{% block title %}Lista de Compras{% endblock %}</title>
   <meta name="description" content="Gerencie suas listas de compras de forma inteligente e colaborativa." />
+
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+
+  <script src="https://cdn.tailwindcss.com"></script>
   <script src="https://unpkg.com/htmx.org@1.9.10"></script>
+  <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
   {% load static %}
-  <link rel="stylesheet" href="{% static 'shopping/css/style.css' %}" />
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+            display: ['Space Grotesk', 'sans-serif'],
+          },
+          colors: {
+            obsidian: {
+              50: '#F7F7F5', 100: '#EEEEE9', 200: '#DDDDD5',
+              300: '#C4C4B8', 400: '#9E9E8F', 500: '#6B6B5E',
+              600: '#4A4A40', 700: '#333330', 800: '#222220',
+              900: '#141413', 950: '#0A0A09',
+            },
+            accent: {
+              warm: '#E8A838', copper: '#C87941',
+              sage: '#7A9E7E', sky: '#6BA3BE',
+            }
+          }
+        }
+      }
+    }
+  </script>
+
+  <style>
+    :root {
+      --bg-body: #F7F7F5;
+      --bg-surface: #FFFFFF;
+      --text-primary: #141413;
+      --text-secondary: #6B6B5E;
+      --text-muted: #9E9E8F;
+      --border-subtle: rgba(0,0,0,0.06);
+      --border-medium: rgba(0,0,0,0.12);
+      --accent-warm: #E8A838;
+      --accent-copper: #C87941;
+      --accent-sage: #7A9E7E;
+      --accent-sky: #6BA3BE;
+      --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    body {
+      font-family: 'Inter', sans-serif;
+      background: var(--bg-body);
+      color: var(--text-primary);
+      -webkit-font-smoothing: antialiased;
+      overflow-x: hidden;
+      background-size: 48px 48px;
+      background-image:
+        linear-gradient(to right, rgba(0,0,0,0.025) 1px, transparent 1px),
+        linear-gradient(to bottom, rgba(0,0,0,0.025) 1px, transparent 1px);
+    }
+    /* Noise Overlay */
+    body::before {
+      content: '';
+      position: fixed; top: 0; left: 0;
+      width: 100%; height: 100%;
+      opacity: 0.025; pointer-events: none; z-index: 9999;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+    }
+    /* Glass Nav */
+    .glass-nav {
+      background: rgba(247,247,245,0.8);
+      backdrop-filter: blur(16px) saturate(1.5);
+      border-bottom: 1px solid var(--border-subtle);
+    }
+    /* Motion */
+    @keyframes fadeSlideUp {
+      from { opacity: 0; transform: translateY(24px) scale(0.98); filter: blur(6px); }
+      to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
+    }
+    @keyframes spinSlow {
+      from { transform: rotate(0deg); }
+      to { transform: rotate(360deg); }
+    }
+    .reveal { opacity: 0; animation-play-state: paused; }
+    .reveal.active { animation: fadeSlideUp 0.9s var(--ease-expo) forwards; animation-play-state: running; }
+    /* Mono Label */
+    .mono-label {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      letter-spacing: 0.18em;
+      color: var(--text-muted);
+    }
+    /* Glow Card */
+    .glow-card {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(16px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 20px;
+      position: relative; overflow: hidden;
+      transition: all 0.5s var(--ease-expo);
+    }
+    .glow-card::after {
+      content: ''; position: absolute;
+      width: 350px; height: 350px;
+      background: radial-gradient(circle, rgba(232,168,56,0.07) 0%, transparent 60%);
+      top: var(--y, -175px); left: var(--x, -175px);
+      transform: translate(-50%,-50%);
+      pointer-events: none; opacity: 0; transition: opacity 0.4s;
+    }
+    .glow-card:hover::after { opacity: 1; }
+    .glow-card:hover {
+      transform: translateY(-4px);
+      background: rgba(255,255,255,0.95);
+      box-shadow: 0 20px 40px -12px rgba(0,0,0,0.08);
+      border-color: var(--border-medium);
+    }
+    /* Beam Button */
+    .beam-btn {
+      position: relative; overflow: hidden;
+      border-radius: 999px; padding: 1px;
+      background: var(--border-subtle); cursor: pointer;
+      display: inline-flex;
+    }
+    .beam-spinner {
+      position: absolute; inset: -50%;
+      width: 200%; height: 200%;
+      background: conic-gradient(from 0deg, transparent 0 340deg, var(--accent-warm) 360deg);
+      animation: spinSlow 3s linear infinite;
+    }
+    .beam-inner {
+      background: var(--bg-surface); color: var(--text-primary);
+      padding: 12px 24px; border-radius: 999px;
+      position: relative; z-index: 2;
+      font-weight: 700; font-size: 0.78rem;
+      text-transform: uppercase; letter-spacing: 0.08em;
+      transition: background 0.3s;
+      display: flex; align-items: center; gap: 8px;
+    }
+    .beam-btn:hover .beam-inner { background: #EEEEE9; }
+    /* Modal Glass */
+    .modal-glass {
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(24px) saturate(1.5);
+      border: 1px solid rgba(255,255,255,0.6);
+      box-shadow: 0 50px 100px -20px rgba(0,0,0,0.15);
+    }
+    /* Auth Glass */
+    .auth-glass {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(20px);
+      border: 1px solid var(--border-subtle);
+      border-radius: 24px;
+    }
+    /* Form Inputs */
+    .obsidian-input {
+      width: 100%; background: white;
+      border: 1px solid var(--border-subtle);
+      border-radius: 12px; padding: 0.9rem 1.2rem;
+      font-size: 0.875rem; outline: none;
+      transition: all 0.3s;
+    }
+    .obsidian-input:focus {
+      border-color: var(--text-primary);
+      box-shadow: 0 0 0 3px rgba(20,20,19,0.06);
+    }
+    /* Alerts */
+    .obsidian-alert {
+      border-radius: 12px; padding: 12px 20px;
+      font-size: 0.8rem; font-weight: 500;
+      display: flex; align-items: center; justify-content: space-between; gap: 12px;
+      animation: fadeSlideUp 0.5s var(--ease-expo) forwards;
+    }
+    .obsidian-alert-success { background: rgba(122,158,126,0.1); border: 1px solid rgba(122,158,126,0.2); color: #4A7A4E; }
+    .obsidian-alert-error { background: rgba(200,80,80,0.1); border: 1px solid rgba(200,80,80,0.2); color: #C85050; }
+    .obsidian-alert-info { background: rgba(107,163,190,0.1); border: 1px solid rgba(107,163,190,0.2); color: #4A8AAA; }
+    .obsidian-alert-warning { background: rgba(232,168,56,0.1); border: 1px solid rgba(232,168,56,0.2); color: #B87A20; }
+    /* Scrollbar */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--bg-body); }
+    ::-webkit-scrollbar-thumb { background: #C4C4B8; border-radius: 3px; }
+    iconify-icon { display: inline-flex; align-items: center; justify-content: center; }
+  </style>
+  {% block extra_css %}{% endblock %}
 </head>
-<body>
-  <nav class="navbar">
-    <div class="nav-container">
-      <a href="{% url 'shopping:home' %}" class="nav-brand">
-        <span class="nav-icon">🎨</span>
-        <span>Projeto <span style="color: var(--primary);">Lista</span></span>
+<body class="selection:bg-obsidian-900 selection:text-white">
+
+  <!-- Navbar -->
+  <nav class="glass-nav fixed top-0 left-0 w-full z-[100] transition-all duration-500" id="navbar">
+    <div class="max-w-7xl mx-auto px-6 h-[72px] flex justify-between items-center">
+      <a href="{% url 'shopping:home' %}" class="flex items-center gap-3 group">
+        <div class="w-9 h-9 rounded-lg bg-obsidian-900 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+          <iconify-icon icon="solar:diamond-bold-duotone" class="text-xl"></iconify-icon>
+        </div>
+        <span class="font-display font-bold tracking-tight text-lg">Lista<span class="font-light text-obsidian-400">.AI</span></span>
       </a>
+
       {% if user.is_authenticated %}
-      <div class="nav-user">
-        <span class="nav-greeting">Olá, <strong>{{ user.username }}</strong></span>
-          <!-- Link para admin, visível apenas para staff -->
+      <div class="flex items-center gap-5">
+        <div class="hidden md:flex flex-col items-end">
+          <span class="mono-label text-[9px]">Usuário Ativo</span>
+          <span class="text-sm font-bold font-display">{{ user.username }}</span>
+        </div>
+        <div class="flex items-center gap-3">
           {% if user.is_staff %}
-            <a href="{% url 'shopping:admin_catalogo' %}" class="btn btn-ghost btn-sm" title="Acesso ao painel admin" style="margin-left: 0.5rem;">
-              Admin
-            </a>
+          <a href="{% url 'shopping:admin_catalogo' %}" class="text-[10px] font-bold uppercase tracking-widest px-4 py-1.5 rounded-full border border-obsidian-200 hover:bg-obsidian-900 hover:text-white hover:border-obsidian-900 transition-all">
+            Admin
+          </a>
           {% endif %}
-        <form method="post" action="{% url 'logout' %}">
-          {% csrf_token %}
-          <button type="submit" class="btn btn-ghost btn-sm">Sair</button>
-        </form>
+          <form method="post" action="{% url 'logout' %}">
+            {% csrf_token %}
+            <button type="submit" class="text-[10px] font-bold uppercase tracking-widest text-obsidian-400 hover:text-red-500 transition-colors flex items-center gap-1">
+              <iconify-icon icon="solar:logout-2-linear" class="text-sm"></iconify-icon>
+              Sair
+            </button>
+          </form>
+        </div>
       </div>
       {% endif %}
     </div>
   </nav>
 
-  <main class="main-content">
-    {% if messages %}
-    <div class="messages-container">
-      {% for msg in messages %}
-      <div class="alert alert-{{ msg.tags }}">
-        <span>{{ msg }}</span>
-        <button class="alert-close" onclick="this.parentElement.remove()">×</button>
+  <!-- Main Content -->
+  <main class="pt-[96px] pb-16 px-6">
+    <div class="max-w-7xl mx-auto">
+      {% if messages %}
+      <div class="space-y-3 mb-8">
+        {% for msg in messages %}
+        <div class="obsidian-alert obsidian-alert-{{ msg.tags }}">
+          <span>{{ msg }}</span>
+          <button onclick="this.parentElement.remove()" class="opacity-50 hover:opacity-100 transition-opacity text-lg leading-none">&times;</button>
+        </div>
+        {% endfor %}
       </div>
-      {% endfor %}
-    </div>
-    {% endif %}
+      {% endif %}
 
-    {% block content %}{% endblock %}
+      {% block content %}{% endblock %}
+    </div>
   </main>
 
-  <footer class="footer">
-    <p>Lista de Compras &copy; 2025 · Feito com Django</p>
+  <!-- Footer -->
+  <footer class="py-6 text-center border-t border-obsidian-200 bg-obsidian-50/50">
+    <p class="text-xs text-obsidian-400 font-mono uppercase tracking-widest">Lista de Compras &copy; {% now "Y" %} · Obsidian DS</p>
   </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const observer = new IntersectionObserver((entries) => {
+        entries.forEach(entry => {
+          if (entry.isIntersecting) entry.target.classList.add('active');
+        });
+      }, { threshold: 0.1, rootMargin: '0px 0px -30px 0px' });
+      document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+      // Trigger visible elements
+      setTimeout(() => {
+        document.querySelectorAll('.reveal').forEach(el => {
+          if (el.getBoundingClientRect().top < window.innerHeight) el.classList.add('active');
+        });
+      }, 200);
+      // Navbar scroll shadow
+      window.addEventListener('scroll', () => {
+        const nav = document.getElementById('navbar');
+        nav.style.boxShadow = window.scrollY > 50 ? '0 4px 20px -4px rgba(0,0,0,0.06)' : 'none';
+      });
+    });
+    // Glow tracking helper
+    function glowTrack(e, el) {
+      const rect = el.getBoundingClientRect();
+      el.style.setProperty('--x', `${e.clientX - rect.left}px`);
+      el.style.setProperty('--y', `${e.clientY - rect.top}px`);
+    }
+  </script>
+  {% block extra_js %}{% endblock %}
 </body>
 </html>

@@ -1,150 +1,181 @@
 {% extends 'shopping/base.html' %}
 {% block title %}Compartilhar · Projeto Lista{% endblock %}
 
+{% block extra_css %}
+<style>
+  .share-card {
+    background: rgba(255,255,255,0.6);
+    backdrop-filter: blur(16px);
+    border: 1px solid var(--border-subtle);
+    border-radius: 20px;
+    transition: all 0.4s var(--ease-expo);
+  }
+  .share-card:hover {
+    background: white;
+    box-shadow: 0 24px 48px -12px rgba(0,0,0,0.06);
+  }
+  .link-field {
+    background: var(--bg-body);
+    border: 1px solid var(--border-subtle);
+    border-radius: 12px;
+    padding: 0.7rem 1rem;
+    font-size: 0.75rem;
+    font-weight: 600; width: 100%;
+    outline: none;
+  }
+</style>
+{% endblock %}
+
 {% block content %}
-<div class="form-page">
-  <div class="card" style="max-width: 500px; width: 100%; padding: 2.5rem; margin-top: 2rem;">
-    <div class="form-card-header" style="margin-bottom: 2rem;">
-      <a href="{% url 'shopping:list_detail' list.uuid %}" class="back-link" style="color: var(--primary); font-weight: 600;">← Voltar para a lista</a>
-      <h1 style="font-size: 1.75rem; font-weight: 800; margin-top: 1rem;">Compartilhar</h1>
-      <p class="form-subtitle" style="color: var(--text-muted);">{{ list.name }}</p>
-    </div>
+<div class="max-w-4xl mx-auto pt-4 pb-20">
+    <!-- Header -->
+    <header class="mb-10 reveal">
+        <a href="{% url 'shopping:list_detail' list.uuid %}" class="mono-label text-[10px] hover:text-obsidian-900 transition-colors flex items-center gap-2 mb-4 group">
+            <iconify-icon icon="solar:arrow-left-linear" class="group-hover:-translate-x-1 transition-transform"></iconify-icon>
+            Voltar para a Lista
+        </a>
+        <h1 class="text-4xl font-display font-bold tracking-tighter">
+            Compartilhar <span class="text-accent-warm">Acesso</span>
+        </h1>
+        <p class="text-xs font-semibold text-obsidian-400 uppercase tracking-widest mt-2">Gerenciando: {{ list.name }}</p>
+    </header>
 
-    <!-- Seção de Link Direto (Colaborativo) -->
-    <div style="background: var(--bg); padding: 1.25rem; border-radius: var(--radius-sm); border: 2px dashed var(--primary); margin-bottom: 2rem;">
-        <label class="form-label" style="font-size: 0.8rem; font-weight: 800; color: var(--primary); text-transform: uppercase; margin-bottom: 0.5rem; display: block;">Link de Edição Colaborativa 🤝</label>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Envie para quem vai te ajudar a montar a lista (esposa, sócio). O original será editado por ambos.</p>
-        
-        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            <input type="text" id="share-url" class="form-input" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'shopping:list_join' list.uuid %}" style="background: #fff; font-size: 0.85rem; flex: 1; min-width: 200px;">
-            <button onclick="copyLink('share-url')" class="btn btn-primary" style="padding: 0 1.25rem; border-radius: 12px;">Copiar</button>
-            <button onclick="toggleQR('join')" class="btn" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 0.5rem 1rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M0 .5A.5.5 0 0 1 .5 0h3a.5.5 0 0 1 0 1H1v2.5a.5.5 0 0 1-1 0v-3Zm12 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V1h-2.5a.5.5 0 0 1-.5-.5ZM.5 12a.5.5 0 0 1 .5.5V15h2.5a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5Zm15 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H15v-2.5a.5.5 0 0 1 .5-.5ZM4 4h1v1H4V4Z"/><path d="M7 2H2v5h5V2ZM3 3h3v3H3V3Zm2 8H4v1h1v-1Z"/><path d="M7 9H2v5h5V9ZM3 10h3v3H3v-3Zm8-6h1v1h-1V4Z"/><path d="M9 2h5v5H9V2Zm1 1v3h3V3h-3ZM8 8v2h1v1H8v1h2v-2h1v2h1v-1h2v-1h-3V8H8Zm2 2H9V9h1v1Zm4 2h-1v1h-2v1h3v-2Zm-4 2v-1H8v1h2Z"/><path d="M12 9h2V8h-2v1Z"/></svg>
-            </button>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-14">
+        <!-- Colaborativo -->
+        <div class="share-card p-8 reveal" style="animation-delay: 0.1s;">
+            <div class="w-11 h-11 rounded-xl bg-obsidian-900 text-white flex items-center justify-center text-xl mb-5">
+                <iconify-icon icon="solar:users-group-rounded-bold-duotone"></iconify-icon>
+            </div>
+            <span class="mono-label text-obsidian-900 mb-1 block text-[10px]">Edição Colaborativa</span>
+            <p class="text-[11px] text-obsidian-400 leading-relaxed mb-5 uppercase tracking-wider font-medium">Ideal para quem vai te ajudar a montar a lista.</p>
+
+            <div class="space-y-3">
+                <input type="text" id="share-url" class="link-field text-accent-sky" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'shopping:list_join' list.uuid %}">
+                <div class="flex gap-2">
+                    <button onclick="copyLink('share-url')" class="flex-1 py-2.5 rounded-xl bg-obsidian-900 text-white text-[10px] font-bold uppercase tracking-widest hover:bg-accent-warm transition-all">Copiar Link</button>
+                    <button onclick="toggleQR('join')" class="w-10 h-10 rounded-xl bg-obsidian-100 flex items-center justify-center hover:bg-obsidian-900 hover:text-white transition-all">
+                        <iconify-icon icon="solar:qr-code-bold" class="text-xl"></iconify-icon>
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Template -->
+        <div class="share-card p-8 border-dashed reveal" style="animation-delay: 0.2s;">
+            <div class="w-11 h-11 rounded-xl bg-accent-copper text-white flex items-center justify-center text-xl mb-5">
+                <iconify-icon icon="solar:copy-bold-duotone"></iconify-icon>
+            </div>
+            <span class="mono-label text-accent-copper mb-1 block text-[10px]">Link de Template</span>
+            <p class="text-[11px] text-obsidian-400 leading-relaxed mb-5 uppercase tracking-wider font-medium">Cada pessoa ganhará uma cópia exclusiva.</p>
+
+            <div class="space-y-3">
+                <input type="text" id="template-url" class="link-field text-accent-copper" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'shopping:list_clone' list.uuid %}">
+                <div class="flex gap-2">
+                    <button onclick="copyLink('template-url')" class="flex-1 py-2.5 rounded-xl bg-accent-copper text-white text-[10px] font-bold uppercase tracking-widest hover:opacity-90 transition-all">Copiar Template</button>
+                    <button onclick="toggleQR('clone')" class="w-10 h-10 rounded-xl bg-obsidian-100 flex items-center justify-center hover:bg-obsidian-900 hover:text-white transition-all">
+                        <iconify-icon icon="solar:qr-code-bold" class="text-xl"></iconify-icon>
+                    </button>
+                </div>
+            </div>
         </div>
     </div>
 
-    <!-- Seção de Link de Template (Cópia) -->
-    <div style="background: rgba(139, 92, 246, 0.05); padding: 1.25rem; border-radius: var(--radius-sm); border: 2px dashed #8B5CF6; margin-bottom: 2.5rem;">
-        <label class="form-label" style="font-size: 0.8rem; font-weight: 800; color: #8B5CF6; text-transform: uppercase; margin-bottom: 0.5rem; display: block;">Link de Template (Criar Cópia) 📑</label>
-        <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">Ideal para enviar para clientes. Cada pessoa que clicar ganhará uma **cópia exclusiva** desta lista.</p>
-        
-        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
-            <input type="text" id="template-url" class="form-input" readonly value="{{ request.scheme }}://{{ request.get_host }}{% url 'shopping:list_clone' list.uuid %}" style="background: #fff; font-size: 0.85rem; flex: 1; min-width: 200px;">
-            <button onclick="copyLink('template-url')" class="btn btn-primary" style="background: #8B5CF6; border-color: #8B5CF6; padding: 0 1.25rem; border-radius: 12px;">Copiar</button>
-            <button onclick="toggleQR('clone')" class="btn" style="background: var(--bg); border: 1px solid var(--border); border-radius: 12px; padding: 0.5rem 1rem;">
-                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M0 .5A.5.5 0 0 1 .5 0h3a.5.5 0 0 1 0 1H1v2.5a.5.5 0 0 1-1 0v-3Zm12 0a.5.5 0 0 1 .5-.5h3a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-1 0V1h-2.5a.5.5 0 0 1-.5-.5ZM.5 12a.5.5 0 0 1 .5.5V15h2.5a.5.5 0 0 1 0 1h-3a.5.5 0 0 1-.5-.5v-3a.5.5 0 0 1 .5-.5Zm15 0a.5.5 0 0 1 .5.5v3a.5.5 0 0 1-.5.5h-3a.5.5 0 0 1 0-1H15v-2.5a.5.5 0 0 1 .5-.5ZM4 4h1v1H4V4Z"/><path d="M7 2H2v5h5V2ZM3 3h3v3H3V3Zm2 8H4v1h1v-1Z"/><path d="M7 9H2v5h5V9ZM3 10h3v3H3v-3Zm8-6h1v1h-1V4Z"/><path d="M9 2h5v5H9V2Zm1 1v3h3V3h-3ZM8 8v2h1v1H8v1h2v-2h1v2h1v-1h2v-1h-3V8H8Zm2 2H9V9h1v1Zm4 2h-1v1h-2v1h3v-2Zm-4 2v-1H8v1h2Z"/><path d="M12 9h2V8h-2v1Z"/></svg>
-            </button>
-            
-            <a href="https://wa.me/?text=Olá! Preparei um template de lista de material no Projeto Lista. Clique aqui para ganhar sua própria cópia e começar a editar: {{ request.scheme }}://{{ request.get_host }}{% url 'shopping:list_clone' list.uuid %}" 
-               target="_blank" 
-               class="btn btn-success" 
-               style="background: #25D366; color: #fff; border: none; width: 100%; justify-content: center; margin-top: 0.5rem; border-radius: 12px; padding: 0.85rem;">
-               <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="currentColor" viewBox="0 0 16 16"><path d="M13.601 2.326A7.854 7.854 0 0 0 7.994 0C3.627 0 .068 3.558.064 7.926c0 1.399.366 2.76 1.057 3.965L0 16l4.204-1.102a7.933 7.933 0 0 0 3.79.965h.004c4.368 0 7.926-3.558 7.93-7.93A7.898 7.898 0 0 0 13.6 2.326zM7.994 14.521a6.573 6.573 0 0 1-3.356-.92l-.24-.144-2.494.654.666-2.433-.156-.251a6.56 6.56 0 0 1-1.007-3.505c0-3.626 2.957-6.584 6.591-6.584a6.56 6.56 0 0 1 4.66 1.931 6.557 6.557 0 0 1 1.928 4.66c-.004 3.639-2.961 6.592-6.592 6.592zm3.615-4.934c-.197-.099-1.17-.578-1.353-.646-.182-.065-.315-.099-.445.099-.133.197-.513.646-.627.775-.114.133-.232.148-.43.05-.197-.1-.836-.308-1.592-.985-.59-.525-.985-1.175-1.103-1.372-.114-.198-.011-.304.088-.403.087-.088.197-.232.296-.346.1-.114.133-.198.198-.33.065-.134.034-.248-.015-.347-.05-.099-.445-1.076-.612-1.47-.16-.389-.323-.335-.445-.34-.114-.007-.247-.007-.38-.007a.729.729 0 0 0-.529.247c-.182.198-.691.677-.691 1.654 0 .977.71 1.916.81 2.049.098.133 1.394 2.132 3.383 2.992.47.205.84.326 1.129.418.475.152.904.129 1.246.08.38-.058 1.171-.48 1.338-.943.164-.464.164-.86.114-.943-.049-.084-.182-.133-.38-.232z"/></svg>
-               &nbsp; Enviar Template pelo WhatsApp
-            </a>
+    <!-- Invite by Username -->
+    <section class="share-card p-8 reveal" style="animation-delay: 0.3s;">
+        <div class="flex items-center gap-3 mb-8">
+            <span class="mono-label">Ou convidar por usuário</span>
+            <div class="h-px bg-obsidian-100 flex-1"></div>
         </div>
-    </div>
 
-    <div style="text-align: center; margin-bottom: 2rem; position: relative;">
-        <span style="background: #fff; padding: 0 1rem; color: var(--text-dim); font-size: 0.8rem; position: relative; z-index: 1;">OU CONVIDAR POR USUÁRIO</span>
-        <hr style="position: absolute; top: 50%; left: 0; right: 0; border: none; border-top: 1px solid var(--border); z-index: 0;">
-    </div>
-
-    <form method="post" class="form-body">
-      {% csrf_token %}
-      {% for field in form %}
-      <div class="form-group" style="margin-bottom: 1.25rem;">
-        <label class="form-label" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">{{ field.label }}</label>
-        {{ field }}
-        {% if field.errors %}
-        <ul class="form-errors" style="color: var(--danger); font-size: 0.8rem; margin-top: 0.5rem; list-style: none;">
-            {% for e in field.errors %}<li>{{ e }}</li>{% endfor %}
-        </ul>
-        {% endif %}
-      </div>
-      {% endfor %}
-      <div class="form-actions" style="margin-top: 1.5rem;">
-        <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1rem;">Convidar Usuário</button>
-      </div>
-    </form>
-
-    {% if shares %}
-    <div class="shares-list" style="margin-top: 2.5rem; border-top: 1px solid var(--border); padding-top: 1.5rem;">
-      <h3 class="shares-title" style="font-size: 0.85rem; font-weight: 800; color: var(--text-muted); text-transform: uppercase; margin-bottom: 1rem;">Usuários com Acesso:</h3>
-      {% for share in shares %}
-      <div class="share-row" style="display: flex; justify-content: space-between; align-items: center; padding: 0.75rem 0; border-bottom: 1px solid var(--bg);">
-        <div class="share-info" style="display: flex; flex-direction: column;">
-          <span class="share-user" style="font-weight: 700; color: var(--text);">{{ share.shared_with.username }}</span>
-          {% if share.can_edit %}
-          <span style="font-size: 0.7rem; color: var(--secondary); font-weight: 600;">Pode editar</span>
-          {% else %}
-          <span style="font-size: 0.7rem; color: var(--text-dim);">Somente leitura</span>
-          {% endif %}
-        </div>
-        <form method="post" action="{% url 'shopping:share_remove' list.uuid share.id %}">
+        <form method="post" class="flex flex-col md:flex-row gap-5 items-end">
           {% csrf_token %}
-          <button type="submit" class="btn btn-danger btn-xs" style="border: none;">Remover</button>
+          {% for field in form %}
+          <div class="flex-1 w-full space-y-2">
+            <label class="mono-label text-obsidian-900 text-[10px] ml-1">{{ field.label }}</label>
+            {{ field }}
+            {% if field.errors %}
+                <ul class="text-[9px] font-bold text-red-500 uppercase tracking-widest list-none ml-1">{% for e in field.errors %}<li>{{ e }}</li>{% endfor %}</ul>
+            {% endif %}
+          </div>
+          {% endfor %}
+          <button type="submit" class="w-full md:w-auto px-8 py-3 bg-obsidian-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-accent-warm transition-all">Enviar Convite</button>
         </form>
-      </div>
-      {% endfor %}
-    </div>
-    {% endif %}
-  </div>
+
+        {% if shares %}
+        <div class="mt-12 pt-8 border-t border-obsidian-100">
+          <h3 class="mono-label text-[10px] mb-5">Usuários com Acesso Ativo</h3>
+          <div class="space-y-2">
+            {% for share in shares %}
+            <div class="flex justify-between items-center p-4 bg-obsidian-50 rounded-xl group transition-all">
+                <div class="flex items-center gap-4">
+                    <div class="w-9 h-9 rounded-xl bg-white border border-obsidian-200 flex items-center justify-center font-bold text-xs uppercase">{{ share.shared_with.username|slice:":1" }}</div>
+                    <div>
+                        <span class="text-sm font-bold block">{{ share.shared_with.username }}</span>
+                        <span class="text-[9px] font-bold uppercase tracking-widest {% if share.can_edit %}text-accent-sky{% else %}text-obsidian-400{% endif %}">
+                            {% if share.can_edit %}Pode editar{% else %}Somente leitura{% endif %}
+                        </span>
+                    </div>
+                </div>
+                <form method="post" action="{% url 'shopping:share_remove' list.uuid share.id %}">
+                  {% csrf_token %}
+                  <button type="submit" class="text-[9px] font-bold uppercase tracking-widest text-obsidian-300 hover:text-red-500 transition-colors">Remover</button>
+                </form>
+            </div>
+            {% endfor %}
+          </div>
+        </div>
+        {% endif %}
+    </section>
 </div>
 
-<!-- Modal para QR Code -->
-<div id="qr-modal" style="display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; padding: 1rem;">
-    <div class="card" style="max-width: 400px; width: 100%; text-align: center; padding: 2rem; position: relative;">
-        <button onclick="toggleQR()" style="position: absolute; top: 1rem; right: 1rem; background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-muted);">&times;</button>
-        <h3 id="qr-title" style="margin-bottom: 1rem; font-weight: 800;">QR Code</h3>
-        <p id="qr-subtitle" style="font-size: 0.85rem; color: var(--text-muted); margin-bottom: 1.5rem;">Aponte a câmera para escanear</p>
-        <img id="qr-image" src="" alt="QR Code" style="width: 100%; height: auto; border-radius: 8px; border: 1px solid var(--border);">
-        <button onclick="toggleQR()" class="btn btn-primary" style="width: 100%; margin-top: 1.5rem; justify-content: center;">Fechar</button>
+<!-- QR Modal -->
+<div id="qr-modal" class="fixed inset-0 z-[200] flex items-center justify-center p-6 transition-all duration-500 invisible opacity-0">
+    <div class="absolute inset-0 bg-obsidian-950/30 backdrop-blur-md" onclick="toggleQR()"></div>
+    <div class="modal-glass w-full max-w-sm rounded-3xl p-10 relative z-10 text-center">
+        <button onclick="toggleQR()" class="absolute top-6 right-6 w-9 h-9 rounded-xl bg-obsidian-100 hover:bg-obsidian-900 hover:text-white flex items-center justify-center transition-all">
+            <iconify-icon icon="solar:close-circle-bold" class="text-xl"></iconify-icon>
+        </button>
+        <h3 id="qr-title" class="text-xl font-display font-bold tracking-tight mb-1">QR Code</h3>
+        <p id="qr-subtitle" class="text-[11px] text-obsidian-400 uppercase tracking-widest font-semibold mb-6">Aponte a câmera para escanear</p>
+        <div class="p-6 bg-obsidian-50 rounded-2xl border border-obsidian-100 mb-6">
+            <img id="qr-image" src="" alt="QR Code" class="w-full h-auto">
+        </div>
+        <button onclick="toggleQR()" class="w-full py-3 bg-obsidian-900 text-white rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-accent-warm transition-all">Fechar</button>
     </div>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
-function toggleQR(type) {
+  document.addEventListener('DOMContentLoaded', () => {
+    document.querySelectorAll('.share-card input[type="text"]:not([readonly]), .share-card select').forEach(el => {
+      el.className = 'obsidian-input';
+    });
+  });
+
+  function toggleQR(type) {
     const modal = document.getElementById('qr-modal');
     const img = document.getElementById('qr-image');
     const title = document.getElementById('qr-title');
     const subtitle = document.getElementById('qr-subtitle');
-    
-    if (modal.style.display === 'none' || modal.style.display === '') {
-        const baseUrl = "{% url 'shopping:list_qrcode' list.uuid %}";
-        img.src = `${baseUrl}?type=${type}`;
-        
-        if (type === 'join') {
-            title.innerText = "Acesso Colaborativo 🤝";
-            subtitle.innerText = "Quem escanear poderá editar esta lista junto com você.";
-        } else {
-            title.innerText = "Template de Lista 📑";
-            subtitle.innerText = "Quem escanear criará uma cópia própria desta lista.";
-        }
-        
-        modal.style.display = 'flex';
-    } else {
-        modal.style.display = 'none';
-    }
-}
+    if (modal.classList.contains('invisible')) {
+      const baseUrl = "{% url 'shopping:list_qrcode' list.uuid %}";
+      img.src = `${baseUrl}?type=${type}`;
+      if (type === 'join') { title.innerText = "Acesso Colaborativo"; subtitle.innerText = "Edição simultânea ativada"; }
+      else { title.innerText = "Template de Lista"; subtitle.innerText = "Criar cópia independente"; }
+      modal.classList.remove('invisible', 'opacity-0');
+    } else { modal.classList.add('invisible', 'opacity-0'); }
+  }
 
-function copyLink(inputId) {
+  function copyLink(inputId) {
     var copyText = document.getElementById(inputId);
     copyText.select();
-    copyText.setSelectionRange(0, 99999);
     navigator.clipboard.writeText(copyText.value);
-    
-    const btn = event.target;
+    const btn = event.currentTarget;
     const originalText = btn.innerText;
-    btn.innerText = "Copiado!";
-    btn.style.background = "var(--success)";
-    btn.style.borderColor = "var(--success)";
-    setTimeout(() => {
-        btn.innerText = originalText;
-        btn.style.background = inputId === 'template-url' ? '#8B5CF6' : 'var(--primary)';
-        btn.style.borderColor = inputId === 'template-url' ? '#8B5CF6' : 'var(--primary)';
-    }, 2000);
-}
+    btn.innerText = "COPIADO!";
+    btn.classList.add('!bg-accent-sage');
+    setTimeout(() => { btn.innerText = originalText; btn.classList.remove('!bg-accent-sage'); }, 2000);
+  }
 </script>
 {% endblock %}

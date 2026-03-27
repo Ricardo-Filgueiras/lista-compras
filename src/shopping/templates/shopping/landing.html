@@ -1,0 +1,447 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="pt-BR" class="scroll-smooth">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Projeto Lista — Inteligência em Listas Escolares</title>
+    <meta name="description" content="Transforme listas de compras em fluxos digitais de alta performance.">
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500&family=Space+Grotesk:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://code.iconify.design/iconify-icon/1.0.7/iconify-icon.min.js"></script>
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                        display: ['Space Grotesk', 'sans-serif'],
+                    },
+                    colors: {
+                        obsidian: {
+                            50: '#F7F7F5', 100: '#EEEEE9', 200: '#DDDDD5',
+                            300: '#C4C4B8', 400: '#9E9E8F', 500: '#6B6B5E',
+                            600: '#4A4A40', 700: '#333330', 800: '#222220',
+                            900: '#141413', 950: '#0A0A09',
+                        },
+                        accent: {
+                            warm: '#E8A838', copper: '#C87941',
+                            sage: '#7A9E7E', sky: '#6BA3BE',
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        :root {
+            --bg-body: #F7F7F5;
+            --accent-warm: #E8A838;
+            --ease-expo: cubic-bezier(0.16, 1, 0.3, 1);
+        }
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg-body);
+            color: #141413;
+            overflow-x: hidden;
+            -webkit-font-smoothing: antialiased;
+        }
+        @keyframes fadeSlideUp {
+            from { opacity: 0; transform: translateY(40px); filter: blur(10px); }
+            to { opacity: 1; transform: translateY(0); filter: blur(0); }
+        }
+        @keyframes spinSlow {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-15px); }
+        }
+        @keyframes marqueeScroll {
+            from { transform: translateX(0); }
+            to { transform: translateX(-50%); }
+        }
+        .reveal { opacity: 0; }
+        .reveal.active { animation: fadeSlideUp 1.2s var(--ease-expo) forwards; }
+        .animate-float { animation: float 6s ease-in-out infinite; }
+        .mono-label {
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.65rem; text-transform: uppercase;
+            letter-spacing: 0.18em; color: #9E9E8F;
+        }
+        /* Hero */
+        .hero-carousel { position: absolute; inset: 0; z-index: 0; }
+        .slide {
+            position: absolute; inset: 0; opacity: 0;
+            transition: opacity 2s ease-in-out;
+            background-size: cover; background-position: center;
+            filter: grayscale(100%) contrast(1.1) brightness(1.1);
+        }
+        .slide.active { opacity: 1; }
+        .hero-overlay {
+            position: absolute; inset: 0; z-index: 1;
+            background: linear-gradient(to bottom,
+                rgba(247,247,245,0.9) 0%,
+                rgba(247,247,245,0.4) 50%,
+                rgba(247,247,245,1) 100%);
+        }
+        /* Beam Button */
+        .beam-btn {
+            position: relative; overflow: hidden;
+            border-radius: 999px; padding: 1px;
+            display: inline-flex; cursor: pointer;
+        }
+        .beam-spinner {
+            position: absolute; inset: -50%;
+            width: 200%; height: 200%;
+            background: conic-gradient(from 0deg, transparent 0 340deg, var(--accent-warm) 360deg);
+            animation: spinSlow 4s linear infinite;
+        }
+        .beam-inner {
+            background: white; color: #141413;
+            padding: 14px 28px; border-radius: 999px;
+            position: relative; z-index: 2;
+            font-weight: 700; font-size: 0.82rem;
+            text-transform: uppercase; letter-spacing: 0.1em;
+            transition: all 0.3s;
+        }
+        .beam-btn:hover .beam-inner { background: #EEEEE9; }
+        /* Glow Card */
+        .glow-card {
+            background: rgba(255,255,255,0.7);
+            backdrop-filter: blur(16px);
+            border: 1px solid rgba(0,0,0,0.06);
+            transition: all 0.6s var(--ease-expo);
+        }
+        .glow-card:hover {
+            transform: translateY(-8px);
+            background: rgba(255,255,255,0.95);
+            box-shadow: 0 30px 60px -12px rgba(0,0,0,0.08);
+        }
+        /* Marquee */
+        .marquee-track {
+            display: flex; width: max-content;
+            animation: marqueeScroll 30s linear infinite;
+        }
+        /* Noise */
+        .noise-overlay {
+            position: fixed; top: 0; left: 0;
+            width: 100%; height: 100%;
+            opacity: 0.025; pointer-events: none; z-index: 9999;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.65' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+        }
+        iconify-icon { display: inline-flex; align-items: center; justify-content: center; }
+    </style>
+</head>
+<body class="selection:bg-obsidian-900 selection:text-white">
+    <div class="noise-overlay"></div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-0 left-0 w-full z-[100] px-8 py-6 transition-all duration-500" id="main-nav" style="background: rgba(20,20,19,0.04); backdrop-filter: blur(10px);">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
+            <a href="{% url 'shopping:home' %}" class="flex items-center gap-3 group">
+                <div class="w-9 h-9 rounded-lg bg-obsidian-900 text-white flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <iconify-icon icon="solar:diamond-bold-duotone" class="text-xl"></iconify-icon>
+                </div>
+                <span class="font-display font-bold tracking-tight text-lg">Lista<span class="font-light text-obsidian-600">.AI</span></span>
+            </a>
+
+            <div class="hidden lg:flex items-center gap-10 text-[10px] font-bold uppercase tracking-[0.2em] text-obsidian-600">
+                <a href="#solutions" class="hover:text-obsidian-900 transition-colors">Soluções</a>
+                <a href="#pipeline" class="hover:text-obsidian-900 transition-colors">Operação B2B</a>
+                <a href="{% url 'login' %}" class="hover:text-obsidian-900 transition-colors">Entrar</a>
+            </div>
+
+            <a href="{% url 'login' %}" class="px-6 py-2 bg-obsidian-900 text-white rounded-full text-[10px] font-bold uppercase tracking-widest hover:bg-accent-warm transition-colors">
+                Ver Minhas Listas
+            </a>
+        </div>
+    </nav>
+
+    <!-- HERO -->
+    <section class="relative h-screen min-h-[850px] flex items-center overflow-hidden">
+        <div class="hero-carousel">
+            <div class="slide active" style="background-image: url('https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?q=80&w=2068&auto=format&fit=crop');"></div>
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1497032628192-86f99bcd76bc?q=80&w=2070&auto=format&fit=crop');"></div>
+            <div class="slide" style="background-image: url('https://images.unsplash.com/photo-1516962080544-eac695c93791?q=80&w=1974&auto=format&fit=crop');"></div>
+        </div>
+        <div class="hero-overlay"></div>
+
+        <div class="relative z-10 w-full max-w-7xl mx-auto px-6 lg:px-12">
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-12 lg:gap-32 items-center">
+                <div class="text-center lg:text-left z-20">
+                    <div class="mb-6 reveal inline-block">
+                        <span class="px-4 py-1.5 rounded-full border border-obsidian-200 bg-white/80 backdrop-blur-md text-[9px] font-bold uppercase tracking-[0.3em]">
+                            Efficiency is the new standard
+                        </span>
+                    </div>
+                    <h1 class="text-5xl md:text-7xl lg:text-[5.5vw] xl:text-[6vw] font-display font-bold leading-[0.95] tracking-tighter mb-8 reveal max-w-2xl" style="animation-delay: 0.2s;">
+                        LISTAS<br><span class="text-accent-warm">INTELIGENTES</span>
+                    </h1>
+                    <p class="text-base md:text-lg font-light text-obsidian-500 max-w-xl mx-auto lg:mx-0 mb-10 reveal" style="animation-delay: 0.4s;">
+                        Transforme o papel em fluxos digitais de alta performance.
+                        <span class="text-obsidian-900 font-semibold">B2B robusto</span> para lojistas,
+                        <span class="text-obsidian-900 font-semibold">experiência premium</span> para famílias.
+                    </p>
+                    <div class="flex flex-col sm:flex-row items-center justify-center lg:justify-start gap-6 reveal" style="animation-delay: 0.6s;">
+                        <a href="{% url 'register' %}" class="beam-btn">
+                            <span class="beam-spinner"></span>
+                            <span class="beam-inner">Começar Agora</span>
+                        </a>
+                        <a href="{% url 'login' %}" class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-obsidian-500 hover:text-accent-warm transition-colors">
+                            <iconify-icon icon="solar:user-bold" class="text-xl"></iconify-icon>
+                            Fazer Login
+                        </a>
+                    </div>
+                </div>
+
+                <!-- Float Card -->
+                <div class="hidden lg:flex justify-center items-center relative reveal lg:pl-12" style="animation-delay: 0.8s;">
+                    <div class="animate-float relative scale-110 xl:scale-125">
+                        <div class="glow-card p-10 rounded-[40px] w-[440px] shadow-2xl rotate-2">
+                            <div class="flex items-center gap-5 mb-8">
+                                <div class="w-14 h-14 rounded-2xl bg-obsidian-900 flex items-center justify-center text-white">
+                                    <iconify-icon icon="solar:bill-list-bold-duotone" class="text-3xl"></iconify-icon>
+                                </div>
+                                <div>
+                                    <h4 class="font-display font-bold text-base">Lista Digital #881</h4>
+                                    <p class="mono-label text-[10px]">Atualizado agora</p>
+                                </div>
+                            </div>
+                            <div class="space-y-3 mb-6">
+                            <div class="space-y-4 mb-8">
+                                <div class="h-3 w-full bg-obsidian-100 rounded-full overflow-hidden">
+                                    <div class="h-full bg-accent-warm w-[65%] rounded-full animate-pulse"></div>
+                                </div>
+                                <div class="flex justify-between mono-label text-[10px]">
+                                    <span>Progresso</span><span class="text-obsidian-900 font-bold">65%</span>
+                                </div>
+                            </div>
+                            <div class="bg-accent-sage/10 p-5 rounded-2xl border border-accent-sage/20 flex items-center justify-between mb-2">
+                                <div class="flex items-center gap-4">
+                                    <iconify-icon icon="solar:check-circle-bold" class="text-accent-sage text-xl"></iconify-icon>
+                                    <span class="text-[13px] font-bold">Papel A4 report</span>
+                                </div>
+                                <span class="mono-label text-[10px]">10x</span>
+                            </div>
+                        </div>
+                        <div class="absolute -top-12 -right-12 glow-card p-5 rounded-2xl shadow-xl -rotate-6 animate-float" style="animation-delay: -3s;">
+                            <iconify-icon icon="solar:qr-code-bold-duotone" class="text-4xl text-obsidian-900"></iconify-icon>
+                        </div>
+                        <div class="absolute -bottom-10 -left-10 glow-card p-5 rounded-2xl shadow-xl rotate-12 animate-float" style="animation-delay: -1.5s;">
+                            <iconify-icon icon="solar:box-bold-duotone" class="text-4xl text-accent-warm"></iconify-icon>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+    
+    <!-- STORYTELLING: SECOND FOLD -->
+    <section class="bg-white py-32 lg:py-48 overflow-hidden relative">
+        <div class="max-w-7xl mx-auto px-6 lg:px-12">
+            <!-- Central Headline -->
+            <div class="text-center mb-24 lg:mb-40">
+                <span class="mono-label block mb-6 motion-enter">O Futuro das Compras</span>
+                <h2 class="text-5xl md:text-7xl lg:text-8xl font-display font-bold tracking-tighter leading-[0.9] motion-enter delay-100">
+                    A nova era do <span class="text-obsidian-300">consumo inteligente</span> começa aqui.
+                </h2>
+            </div>
+
+            <!-- B2B Feature -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 items-center mb-40 lg:mb-64">
+                <div class="motion-enter">
+                    <div class="w-12 h-12 rounded-2xl bg-obsidian-950 text-white flex items-center justify-center mb-8">
+                        <iconify-icon icon="solar:chart-square-bold-duotone" class="text-2xl"></iconify-icon>
+                    </div>
+                    <h3 class="text-4xl lg:text-5xl font-display font-bold tracking-tight mb-6">Eficiência de Atacado,<br><span class="text-accent-copper">Controle Total.</span></h3>
+                    <p class="text-lg text-obsidian-500 font-light leading-relaxed mb-10">
+                        Nossa plataforma B2B transforma a logística complexa em fluxos visuais simplificados. Gerencie centenas de listas escolares com a precisão de um dashboard financeiro.
+                    </p>
+                    <ul class="space-y-4">
+                        <li class="flex items-start gap-3">
+                            <iconify-icon icon="solar:check-circle-bold" class="text-accent-copper text-xl mt-1"></iconify-icon>
+                            <span class="text-sm font-semibold text-obsidian-700">Painel administrativo inteligente</span>
+                        </li>
+                        <li class="flex items-start gap-3">
+                            <iconify-icon icon="solar:check-circle-bold" class="text-accent-copper text-xl mt-1"></iconify-icon>
+                            <span class="text-sm font-semibold text-obsidian-700">Relatórios de picking em tempo real</span>
+                        </li>
+                    </ul>
+                </div>
+                <div class="relative motion-enter delay-300">
+                    <div class="absolute -inset-4 bg-gradient-to-tr from-accent-copper/10 to-transparent blur-3xl opacity-30"></div>
+                    <img src="b2b_dashboard_mockup_1774651857975.png" alt="B2B Dashboard Design" class="rounded-[40px] shadow-2xl border border-obsidian-100 w-full relative z-10 transition-transform duration-700 hover:scale-[1.02]">
+                </div>
+            </div>
+
+            <!-- Family Feature (Alternating) -->
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-32 items-center mb-40 lg:mb-64">
+                <div class="order-2 lg:order-1 relative motion-enter">
+                    <div class="absolute -inset-4 bg-gradient-to-tr from-accent-sky/10 to-transparent blur-3xl opacity-30"></div>
+                    <img src="family_shopping_experience_1774651917550.png" alt="Premium Family App Experience" class="rounded-[40px] shadow-2xl border border-obsidian-100 w-full relative z-10 transition-transform duration-700 hover:scale-[1.02]">
+                </div>
+                <div class="order-1 lg:order-2 motion-enter delay-300">
+                    <div class="w-12 h-12 rounded-2xl bg-accent-sky text-white flex items-center justify-center mb-8">
+                        <iconify-icon icon="solar:users-group-two-rounded-bold-duotone" class="text-2xl"></iconify-icon>
+                    </div>
+                    <h3 class="text-4xl lg:text-5xl font-display font-bold tracking-tight mb-6">A experiência <span class="text-accent-sky">Premium</span><br>que sua família merece.</h3>
+                    <p class="text-lg text-obsidian-500 font-light leading-relaxed mb-10">
+                        O design Apple-style não é apenas cosmético — é funcional. Listas que se organizam sozinhas por setor do supermercado, economizando seu tempo e reduzindo o estresse.
+                    </p>
+                    <div class="grid grid-cols-2 gap-6">
+                        <div class="p-5 rounded-2xl bg-obsidian-50 border border-obsidian-100">
+                            <h4 class="font-display font-bold text-lg mb-2">Colaboração</h4>
+                            <p class="text-xs text-obsidian-400">Toda a família conectada em uma única lista.</p>
+                        </div>
+                        <div class="p-5 rounded-2xl bg-obsidian-50 border border-obsidian-100">
+                            <h4 class="font-display font-bold text-lg mb-2">Sync Realtime</h4>
+                            <p class="text-xs text-obsidian-400">Atualizações instantâneas no carrinho.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bento Features Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-6 lg:gap-8">
+                <!-- Tech Focus -->
+                <div class="glow-card md:col-span-2 p-10 lg:p-14 rounded-[40px] flex flex-col justify-end min-h-[400px] motion-enter group">
+                    <img src="qr_picking_tech_1774651930191.png" alt="Picking Technology" class="absolute inset-0 w-full h-full object-cover opacity-20 group-hover:scale-110 transition-transform duration-1000 grayscale">
+                    <div class="absolute inset-0 bg-gradient-to-t from-white via-white/80 to-transparent"></div>
+                    <div class="relative z-10">
+                        <span class="mono-label text-accent-warm mb-3 block">High-Tech Retail</span>
+                        <h4 class="text-3xl font-display font-bold tracking-tight mb-4">Picking Digital <br>& QR Tracking</h4>
+                        <p class="text-sm text-obsidian-500 max-w-md">Elimine erros com validação instantânea via câmera. A tecnologia que as grandes redes usam, agora no seu celular.</p>
+                    </div>
+                </div>
+
+                <!-- Trello Focus -->
+                <div class="glow-card p-10 lg:p-14 rounded-[40px] bg-obsidian-950 text-white motion-enter delay-200">
+                    <iconify-icon icon="solar:trello-bold-duotone" class="text-5xl text-accent-sky mb-8"></iconify-icon>
+                    <h4 class="text-2xl font-display font-bold tracking-tight mb-4">Pipeline Trello</h4>
+                    <p class="text-sm text-obsidian-400">Envie suas listas para quadros do Trello automaticamente para gestão de operações logísticas robustas.</p>
+                </div>
+
+                <!-- Sharing -->
+                <div class="glow-card p-10 lg:p-14 rounded-[40px] motion-enter delay-400">
+                    <iconify-icon icon="solar:share-circle-bold-duotone" class="text-5xl text-accent-sage mb-8"></iconify-icon>
+                    <h4 class="text-2xl font-display font-bold tracking-tight mb-4">Smart Sharing</h4>
+                    <p class="text-sm text-obsidian-500">Links compartilháveis com permissões de somente-leitura ou edição colaborativa total.</p>
+                </div>
+
+                <div class="glow-card md:col-span-2 p-10 lg:p-14 rounded-[40px] flex items-center justify-between motion-enter delay-500 bg-obsidian-50 border-none">
+                    <div class="max-w-md">
+                        <h4 class="text-2xl font-display font-bold tracking-tight mb-2">Pronto para modernizar?</h4>
+                        <p class="text-sm text-obsidian-500">Junte-se a mais de 2.000 usuários que já simplificaram suas rotinas de compras.</p>
+                    </div>
+                    <a href="{% url 'register' %}" class="beam-btn">
+                        <span class="beam-spinner"></span>
+                        <span class="beam-inner">Começar Gratuitamente</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Marquee -->
+    <div class="py-5 bg-obsidian-950 text-white overflow-hidden">
+        <div class="marquee-track gap-16 items-center">
+            <span class="text-4xl font-display font-bold uppercase tracking-tighter opacity-20 mx-6">Picking Digital</span>
+            <span class="text-4xl font-display font-bold uppercase tracking-tighter mx-6">Templates Reutilizáveis</span>
+            <span class="text-4xl font-display font-bold uppercase tracking-tighter opacity-20 mx-6">Pipeline Trello</span>
+            <span class="text-4xl font-display font-bold uppercase tracking-tighter mx-6">QR Code Tracking</span>
+            <span class="text-4xl font-display font-bold uppercase tracking-tighter opacity-20 mx-6">Picking Digital</span>
+            <span class="text-4xl font-display font-bold uppercase tracking-tighter mx-6">Templates Reutilizáveis</span>
+            <span class="text-4xl font-display font-bold uppercase tracking-tighter opacity-20 mx-6">Pipeline Trello</span>
+            <span class="text-4xl font-display font-bold uppercase tracking-tighter mx-6">QR Code Tracking</span>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-obsidian-50 pt-28 pb-14 px-8 border-t border-obsidian-200 overflow-hidden">
+        <div class="max-w-7xl mx-auto text-center">
+            <h2 class="text-[18vw] font-display font-bold tracking-tighter text-obsidian-100 leading-none select-none hover:text-obsidian-900 transition-all duration-[2000ms] cursor-default reveal">
+                LISTA
+            </h2>
+
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-16 mt-20 text-left border-t border-obsidian-200 pt-14">
+                <div>
+                    <h5 class="font-display font-semibold text-sm mb-5 uppercase tracking-widest">Sobre o Projeto</h5>
+                    <p class="text-obsidian-400 text-xs leading-relaxed">
+                        Uma solução B2B2C focada em converter a fricção das listas escolares em uma experiência de compra fluida e moderna.
+                    </p>
+                </div>
+                <div>
+                    <h5 class="font-display font-semibold text-sm mb-5 uppercase tracking-widest">Acesso Rápido</h5>
+                    <ul class="text-obsidian-400 text-xs space-y-3">
+                        <li><a href="{% url 'login' %}" class="hover:text-obsidian-900 transition-colors">• Entrar no Sistema</a></li>
+                        <li><a href="{% url 'register' %}" class="hover:text-obsidian-900 transition-colors">• Criar Conta</a></li>
+                        <li><a href="{% url 'shopping:home' %}" class="hover:text-obsidian-900 transition-colors">• Minhas Listas</a></li>
+                    </ul>
+                </div>
+                <div class="text-right">
+                    <p class="mono-label text-[9px] text-obsidian-300 mb-6">v3.0 Build 2026</p>
+                    <a href="{% url 'register' %}" class="beam-btn">
+                        <span class="beam-spinner"></span>
+                        <span class="beam-inner">Começar</span>
+                    </a>
+                </div>
+            </div>
+
+            <div class="mt-24 text-[10px] font-mono font-medium text-obsidian-400 uppercase tracking-[0.5em]">
+                © {% now "Y" %} Projeto Lista · Obsidian DS
+            </div>
+        </div>
+    </footer>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // 1. Scroll Reveal Observer (Premium Refinement)
+            const observer = new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('active');
+                    }
+                });
+            }, { 
+                threshold: 0.1, 
+                rootMargin: '0px 0px -60px 0px' 
+            });
+
+            document.querySelectorAll('.motion-enter, .reveal').forEach(el => observer.observe(el));
+
+            window.addEventListener('scroll', () => {
+                const nav = document.getElementById('main-nav');
+                if (window.scrollY > 50) {
+                    nav.style.background = 'rgba(247,247,245,0.85)';
+                    nav.style.backdropFilter = 'blur(24px) saturate(1.5)';
+                    nav.style.padding = '1rem 2rem';
+                    nav.style.boxShadow = '0 4px 20px -4px rgba(0,0,0,0.06)';
+                } else {
+                    // Darker/More contrast at top
+                    nav.style.background = 'rgba(20,20,19,0.04)';
+                    nav.style.backdropFilter = 'blur(10px)';
+                    nav.style.padding = '1.5rem 2rem';
+                    nav.style.boxShadow = 'none';
+                }
+            });
+
+            const slides = document.querySelectorAll('.slide');
+            let currentSlide = 0;
+            setInterval(() => {
+                slides[currentSlide].classList.remove('active');
+                currentSlide = (currentSlide + 1) % slides.length;
+                slides[currentSlide].classList.add('active');
+            }, 6000);
+        });
+    </script>
+</body>
+</html>

@@ -2,25 +2,32 @@
 {% block title %}Criar cópia de {{ list.name }}{% endblock %}
 
 {% block content %}
-<div class="auth-page" style="min-height: 80vh;">
-  <div class="card" style="max-width: 450px; width: 100%; text-align: center; padding: 3rem 2.5rem;">
-    <div style="font-size: 3.5rem; margin-bottom: 1.5rem;">📑</div>
-    <h1 style="font-size: 1.75rem; font-weight: 800; margin-bottom: 0.5rem; letter-spacing: -0.03em;">Deseja criar uma cópia desta lista?</h1>
-    <p style="color: var(--text-muted); margin-bottom: 2rem; font-size: 1rem;">Você criará uma versão privada da lista <strong>"{{ list.name }}"</strong> para você editar como quiser.</p>
+<div class="min-h-[60vh] flex items-center justify-center py-12">
+  <div class="auth-glass w-full max-w-md p-10 text-center reveal active">
+    <div class="w-14 h-14 rounded-2xl bg-accent-copper/10 flex items-center justify-center text-2xl mx-auto mb-5">
+        <iconify-icon icon="solar:copy-bold-duotone" class="text-accent-copper"></iconify-icon>
+    </div>
+    <h1 class="text-2xl font-display font-bold tracking-tighter mb-2">Criar uma cópia?</h1>
+    <p class="text-sm text-obsidian-400 mb-6">
+        Você criará uma versão privada da lista <strong class="text-obsidian-900">"{{ list.name }}"</strong> para editar como quiser.
+    </p>
 
-    <div style="background: var(--bg); padding: 1.25rem; border-radius: var(--radius-sm); border: 1px solid var(--border); margin-bottom: 2rem; text-align: left;">
-        <div style="font-size: 0.75rem; font-weight: 700; color: var(--text-dim); text-transform: uppercase; margin-bottom: 0.25rem;">DETALHES DO TEMPLATE</div>
-        <div style="font-weight: 700;">{{ list.items.count }} Itens inclusos</div>
-        <div style="color: var(--text-muted); font-size: 0.9rem;">Criado por: {{ list.user.username }}</div>
+    <div class="bg-obsidian-50 p-5 rounded-xl border border-obsidian-200 mb-8 text-left">
+        <span class="mono-label text-[9px] block mb-1">Detalhes do Template</span>
+        <div class="font-bold text-sm">{{ list.items.count }} Itens inclusos</div>
+        <div class="text-xs text-obsidian-400 mt-0.5">Criado por: {{ list.user.username }}</div>
     </div>
 
-    <form method="post" style="display: flex; flex-direction: column; gap: 0.75rem;">
+    <form method="post" class="flex flex-col gap-3">
       {% csrf_token %}
-      <button type="submit" class="btn btn-primary" style="width: 100%; justify-content: center; padding: 1.15rem; font-size: 1.1rem; border-radius: 16px;">
-        Sim, Criar Minha Cópia
-      </button>
-      <a href="{% url 'shopping:index' %}" class="btn btn-ghost" style="width: 100%; justify-content: center; padding: 1.15rem; border-radius: 16px;">
-        Cancelar e Sair
+      <div class="beam-btn w-full">
+          <span class="beam-spinner"></span>
+          <button type="submit" class="beam-inner w-full justify-center">
+              Sim, Criar Minha Cópia
+          </button>
+      </div>
+      <a href="{% url 'shopping:index' %}" class="px-6 py-3.5 rounded-xl border border-obsidian-200 text-[10px] font-bold uppercase tracking-widest hover:bg-obsidian-50 transition-all text-center">
+          Cancelar e Sair
       </a>
     </form>
   </div>
