@@ -1,366 +1,278 @@
+{% extends 'shopping/base.html' %}
 {% load static %}
-<!DOCTYPE html>
-<html class="light" lang="pt-br">
-<head>
-    <meta charset="utf-8"/>
-    <meta content="width=device-width, initial-scale=1.0" name="viewport"/>
-    <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
-    <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
-    <script id="tailwind-config">
-        tailwind.config = {
-            darkMode: "class",
-            theme: {
-                extend: {
-                    colors: {
-                        "on-primary-fixed": "#373f54",
-                        "on-primary": "#f7f7ff",
-                        "on-tertiary-fixed": "#344255",
-                        "inverse-surface": "#0b0f10",
-                        "secondary-fixed": "#d3e4fe",
-                        "surface-container-lowest": "#ffffff",
-                        "on-secondary": "#f7f9ff",
-                        "on-primary-container": "#4a5167",
-                        "surface-variant": "#d9e4ea",
-                        "outline-variant": "#a9b4b9",
-                        "on-error": "#fff7f6",
-                        "secondary-container": "#d3e4fe",
-                        "on-secondary-fixed": "#314055",
-                        "surface-bright": "#f7f9fb",
-                        "error-container": "#fe8983",
-                        "primary-fixed": "#dae2fd",
-                        "secondary-fixed-dim": "#c5d6f0",
-                        "on-surface": "#2a3439",
-                        "background": "#f7f9fb",
-                        "surface-container": "#e8eff3",
-                        "outline": "#717c82",
-                        "primary": "#565e74",
-                        "primary-container": "#dae2fd",
-                        "error": "#9f403d",
-                        "tertiary-fixed": "#d8e6ff",
-                        "error-dim": "#4e0309",
-                        "on-primary-fixed-variant": "#535b71",
-                        "on-secondary-fixed-variant": "#4d5d73",
-                        "surface": "#f7f9fb",
-                        "secondary": "#506076",
-                        "surface-container-highest": "#d9e4ea",
-                        "on-tertiary": "#f8f8ff",
-                        "on-secondary-container": "#435368",
-                        "tertiary-dim": "#465468",
-                        "surface-container-low": "#f0f4f7",
-                        "on-tertiary-container": "#465468",
-                        "primary-dim": "#4a5268",
-                        "on-error-container": "#752121",
-                        "secondary-dim": "#445460",
-                        "on-surface-variant": "#566166",
-                        "surface-container-high": "#e1e9ee",
-                        "tertiary": "#526074",
-                        "tertiary-container": "#d8e6ff",
-                        "inverse-primary": "#dae2fd",
-                        "on-background": "#2a3439",
-                        "surface-tint": "#565e74",
-                        "inverse-on-surface": "#9a9d9f",
-                        "tertiary-fixed-dim": "#cad8f0",
-                        "primary-fixed-dim": "#ccd4ee",
-                        "surface-dim": "#cfdce3",
-                        "on-tertiary-fixed-variant": "#505e73"
-                    },
-                    fontFamily: {
-                        "headline": ["Manrope"],
-                        "body": ["Inter"],
-                        "label": ["Inter"]
-                    },
-                    borderRadius: {"DEFAULT": "0.125rem", "lg": "0.25rem", "xl": "0.5rem", "full": "0.75rem"},
-                },
-            },
-        }
-    </script>
-    <style>
-        .material-symbols-outlined {
-            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
-            vertical-align: middle;
-        }
-        body { font-family: 'Inter', sans-serif; }
-        h1, h2, h3, .brand-font { font-family: 'Manrope', sans-serif; }
-        .glass-nav { backdrop-filter: blur(12px); }
-        .no-scrollbar::-webkit-scrollbar { display: none; }
-    </style>
-</head>
-<body class="bg-surface text-on-surface selection:bg-primary-container selection:text-on-primary-container">
 
-<aside class="h-screen w-64 fixed left-0 top-0 border-r-0 bg-slate-50/50 dark:bg-slate-950/50 backdrop-blur-lg flex flex-col h-full py-8 px-6 z-50">
-    <div class="mb-10 flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-primary to-primary-dim flex items-center justify-center text-white shadow-lg">
-            <span class="material-symbols-outlined" data-icon="edit_note">edit_note</span>
-        </div>
-        <div>
-            <h2 class="font-['Manrope'] font-extrabold text-slate-800 dark:text-slate-100 text-lg leading-tight">Atelier Admin</h2>
-            <p class="text-[10px] uppercase tracking-widest text-on-surface-variant font-bold opacity-70">Premium Stationery</p>
-        </div>
-    </div>
-    <nav class="flex-1 space-y-2">
-        <a class="flex items-center gap-3 py-3 px-4 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:translate-x-1 transition-all" href="{% url 'shopping:admin_dashboard' %}">
-            <span class="material-symbols-outlined" data-icon="shopping_bag">shopping_bag</span>
-            <span class="font-['Inter'] text-sm font-medium">Orders</span>
-        </a>
-        <a class="flex items-center gap-3 py-3 px-4 rounded-lg transition-all text-slate-900 dark:text-white font-bold border-r-2 border-slate-600 dark:border-slate-400 bg-slate-200/20 dark:bg-slate-800/20" href="{% url 'shopping:admin_catalogo' %}">
-            <span class="material-symbols-outlined" data-icon="import_contacts">import_contacts</span>
-            <span class="font-['Inter'] text-sm font-medium">Catalog</span>
-        </a>
-        <a class="flex items-center gap-3 py-3 px-4 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:translate-x-1 transition-all" href="#">
-            <span class="material-symbols-outlined" data-icon="collections_bookmark">collections_bookmark</span>
-            <span class="font-['Inter'] text-sm font-medium">School Templates</span>
-        </a>
-        <a class="flex items-center gap-3 py-3 px-4 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 hover:translate-x-1 transition-all" href="{% url 'shopping:index' %}">
-            <span class="material-symbols-outlined" data-icon="storefront">storefront</span>
-            <span class="font-['Inter'] text-sm font-medium">View Storefront</span>
-        </a>
-    </nav>
-    <div class="pt-6 mt-6 border-t border-outline-variant/10 space-y-2">
-        <a href="javascript:void(0)" onclick="toggleImportModal()" class="block w-full text-center bg-gradient-to-r from-primary to-primary-dim text-white py-2.5 rounded-lg font-['Inter'] text-sm font-semibold shadow-sm active:scale-95 transition-transform" title="Importar lista de produtos a partir de arquivo CSV">
-            Importar Lista (CSV)
-        </a>
-        <a class="flex items-center gap-3 py-3 px-4 rounded-lg text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-100 transition-all" href="{% url 'logout' %}">
-            <span class="material-symbols-outlined" data-icon="logout">logout</span>
-            <span class="font-['Inter'] text-sm font-medium">Logout</span>
-        </a>
-    </div>
-</aside>
+{% block title %}Catálogo & Templates - Lista.AI{% endblock %}
 
-<main class="ml-64 min-h-screen">
-    <header class="w-full sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl shadow-[0_10px_40px_-10px_rgba(86,94,116,0.08)] flex justify-between items-center px-8 py-4">
-        <div class="flex items-center gap-8">
-            <h1 class="text-xl font-bold text-slate-800 dark:text-slate-100 font-['Manrope'] tracking-tight">Catálogo & Templates</h1>
-            <div class="relative group">
-                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 material-symbols-outlined text-sm" data-icon="search">search</span>
-                <input class="pl-10 pr-4 py-2 bg-surface-container-low border-none rounded-lg text-sm w-64 focus:ring-2 focus:ring-primary/20 transition-all" placeholder="Buscar no catálogo..." type="text"/>
+{% block navbar %}{% endblock %}
+
+{% block main_container %}
+<div class="flex min-h-screen bg-obsidian-50">
+    <!-- Sidebar Administrativa -->
+    <aside class="fixed left-0 top-0 h-full w-72 bg-white/70 backdrop-blur-2xl border-r border-obsidian-200 z-[110] flex flex-col pt-8 pb-12 px-6">
+        <!-- Logo Admin -->
+        <div class="mb-12 flex items-center gap-3">
+            <div class="w-10 h-10 rounded-xl bg-obsidian-900 text-white flex items-center justify-center shadow-lg">
+                <iconify-icon icon="solar:shield-check-bold-duotone" class="text-2xl"></iconify-icon>
             </div>
-        </div>
-        <div class="flex items-center gap-4">
-            <div class="flex items-center gap-3 cursor-pointer group">
-                <div class="text-right">
-                    <p class="text-sm font-semibold text-slate-800 leading-none">{{ request.user.username }}</p>
-                    <p class="text-[10px] text-slate-500 font-medium">Staff Atelier</p>
-                </div>
-                <div class="w-10 h-10 rounded-full bg-slate-200 flex items-center justify-center text-slate-500 material-symbols-outlined ring-2 ring-white ring-offset-2 ring-offset-slate-100">person</div>
-            </div>
-        </div>
-    </header>
-
-    <div class="p-8">
-        <!-- Editorial Header -->
-        <div class="mb-10 flex justify-between items-end">
             <div>
-                <nav class="flex items-center gap-2 text-xs text-on-surface-variant mb-2">
-                    <span>Admin</span>
-                    <span class="material-symbols-outlined text-[10px]" data-icon="chevron_right">chevron_right</span>
-                    <span class="text-primary font-semibold">Design Catalog</span>
-                </nav>
-                <h2 class="text-4xl font-extrabold text-on-surface tracking-tight mb-2">Catálogo & Templates</h2>
-                <p class="text-on-surface-variant max-w-md">Gerencie de forma centralizada as suas listas base (templates escolares) e o catálogo de produtos disponíveis na loja.</p>
+                <h2 class="font-display font-bold text-obsidian-900 text-lg leading-tight">Painel Admin</h2>
+                <p class="mono-label text-[9px]">Gestão de Pedidos</p>
             </div>
-            
-            {% if messages %}
-            <div class="flex flex-col gap-2">
-                {% for message in messages %}
-                <div class="px-4 py-2 rounded-lg text-sm font-medium {% if message.tags == 'error' %}bg-red-50 text-red-700{% else %}bg-green-50 text-green-700{% endif %}">
-                    {{ message }}
-                </div>
-                {% endfor %}
-            </div>
-            {% endif %}
         </div>
 
-        <!-- Section: Templates -->
-        <div class="mb-14">
-            <h3 class="text-xl font-bold font-['Manrope'] mb-6 flex items-center gap-2 text-slate-800 border-b border-surface-container-low pb-2">
-                <span class="material-symbols-outlined text-primary">collections_bookmark</span>
-                Templates Institucionais
-            </h3>
+        <!-- Navegação -->
+        <nav class="flex-1 space-y-2">
+            <a href="{% url 'shopping:admin_dashboard' %}" class="flex items-center gap-4 py-3 px-4 rounded-2xl transition-all font-semibold text-obsidian-500 hover:text-obsidian-900 hover:bg-white hover:shadow-sm">
+                <iconify-icon icon="solar:cart-large-minimalistic-bold-duotone" class="text-xl"></iconify-icon>
+                <span class="text-sm">Fluxo de Pedidos</span>
+            </a>
+            <a href="{% url 'shopping:admin_catalogo' %}" class="flex items-center gap-4 py-3 px-4 rounded-2xl transition-all font-bold text-obsidian-900 bg-obsidian-100/50 border border-obsidian-200 shadow-sm">
+                <iconify-icon icon="solar:book-bookmark-bold-duotone" class="text-xl"></iconify-icon>
+                <span class="text-sm">Catálogo de Itens</span>
+            </a>
+            <a href="#" class="flex items-center gap-4 py-3 px-4 rounded-2xl transition-all font-semibold text-obsidian-500 hover:text-obsidian-900 hover:bg-white hover:shadow-sm">
+                <iconify-icon icon="solar:document-add-bold-duotone" class="text-xl"></iconify-icon>
+                <span class="text-sm">Templates Escolares</span>
+            </a>
+            <a href="{% url 'shopping:home' %}" class="flex items-center gap-4 py-3 px-4 rounded-2xl transition-all font-semibold text-obsidian-500 hover:text-obsidian-900 hover:bg-white hover:shadow-sm mt-8">
+                <iconify-icon icon="solar:shop-2-bold-duotone" class="text-xl"></iconify-icon>
+                <span class="text-sm">Ver Loja</span>
+            </a>
+        </nav>
+
+        <!-- Rodapé Sidebar -->
+        <div class="pt-6 mt-6 border-t border-obsidian-200">
+            <form method="post" action="{% url 'logout' %}">
+                {% csrf_token %}
+                <button type="submit" class="flex items-center gap-4 py-3 px-4 w-full rounded-2xl transition-all font-semibold text-obsidian-400 hover:text-red-500 hover:bg-red-50">
+                    <iconify-icon icon="solar:logout-3-bold-duotone" class="text-xl"></iconify-icon>
+                    <span class="text-sm">Sair do Painel</span>
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- Área de Conteúdo -->
+    <main class="flex-1 ml-72 min-h-screen">
+        <!-- Header Superior -->
+        <header class="h-[88px] sticky top-0 bg-obsidian-50/80 backdrop-blur-xl border-b border-obsidian-200 px-10 flex items-center justify-between z-[100]">
+            <div>
+                <nav class="flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-obsidian-400 mb-1">
+                    <span>Admin</span>
+                    <iconify-icon icon="solar:alt-arrow-right-linear" class="text-[8px]"></iconify-icon>
+                    <span class="text-obsidian-900">Catálogo de Design</span>
+                </nav>
+                <h1 class="font-display font-extrabold text-2xl text-obsidian-950 tracking-tight leading-none">Catálogo & Templates</h1>
+            </div>
             
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {% for lista in templates %}
-                <div class="bg-surface-container-lowest p-6 rounded-2xl shadow-[0_10px_40px_-10px_rgba(86,94,116,0.08)] border border-slate-100 flex flex-col justify-between group hover:border-primary/20 transition-all">
-                    <div>
-                        <div class="flex justify-between items-start mb-4">
-                            <span class="bg-primary/10 text-primary px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">TEMPLATE</span>
-                            <button onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}{% url 'shopping:list_clone' lista.uuid %}')" class="text-slate-400 hover:text-primary transition-colors p-1" title="Copiar link de compartilhamento">
-                                <span class="material-symbols-outlined text-lg">link</span>
+            <div class="flex items-center gap-6">
+                <!-- Search Admin -->
+                <div class="relative group">
+                    <iconify-icon icon="solar:magnifer-linear" class="absolute left-4 top-1/2 -translate-y-1/2 text-obsidian-400"></iconify-icon>
+                    <input type="text" placeholder="Buscar no catálogo..." class="obsidian-input pl-11 py-2.5 w-72 bg-white/50 focus:bg-white text-sm">
+                </div>
+                
+                <button onclick="toggleImportModal()" class="beam-btn">
+                    <span class="beam-spinner"></span>
+                    <span class="beam-inner">
+                        <iconify-icon icon="solar:import-bold-duotone"></iconify-icon>
+                        Importar CSV
+                    </span>
+                </button>
+            </div>
+        </header>
+
+        <div class="p-10 space-y-12">
+            <!-- Seção: Templates Institucionais -->
+            <section class="reveal">
+                <div class="flex items-center justify-between mb-8 border-b border-obsidian-100 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-accent-sky/10 text-accent-sky flex items-center justify-center">
+                            <iconify-icon icon="solar:bookmark-opened-bold-duotone" class="text-2xl"></iconify-icon>
+                        </div>
+                        <h3 class="font-display font-bold text-obsidian-900 text-xl tracking-tight">Templates Institucionais</h3>
+                    </div>
+                    <span class="text-xs font-mono uppercase tracking-widest text-obsidian-400">{{ templates.count }} Ativos</span>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
+                    {% for lista in templates %}
+                    <div class="glow-card p-8 flex flex-col justify-between group" onmousemove="glowTrack(event, this)">
+                        <div>
+                            <div class="flex justify-between items-start mb-6">
+                                <span class="px-2.5 py-1 rounded-md bg-accent-sky/10 text-accent-sky text-[9px] font-bold uppercase tracking-wider border border-accent-sky/20">Template de Lista</span>
+                                <button onclick="copyToClipboard('{{ request.scheme }}://{{ request.get_host }}{% url 'shopping:list_clone' lista.uuid %}')" class="w-9 h-9 rounded-full bg-obsidian-50 text-obsidian-400 hover:bg-accent-sky hover:text-white transition-all flex items-center justify-center" title="Copiar link de compartilhamento">
+                                    <iconify-icon icon="solar:link-bold-duotone" class="text-lg"></iconify-icon>
+                                </button>
+                            </div>
+                            <h4 class="text-xl font-display font-bold text-obsidian-950 mb-2 leading-tight">
+                                <a href="{% url 'shopping:list_detail' lista.uuid %}" class="hover:text-accent-sky transition-colors">{{ lista.name }}</a>
+                            </h4>
+                            <p class="text-sm text-obsidian-400 font-medium mb-6">
+                                {{ lista.school|default:"Escola Geral" }} {% if lista.grade %}· {{ lista.grade }}{% endif %}
+                            </p>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-6 border-t border-obsidian-100">
+                            <div class="flex items-center gap-2 text-xs font-bold text-obsidian-500">
+                                <iconify-icon icon="solar:box-minimalistic-bold-duotone" class="text-lg text-obsidian-300"></iconify-icon>
+                                {{ lista.items.count }} Itens
+                            </div>
+                            <div class="flex gap-2">
+                                <a href="{% url 'shopping:list_edit' lista.uuid %}" class="w-9 h-9 rounded-xl bg-white border border-obsidian-200 text-obsidian-400 hover:text-obsidian-900 hover:bg-obsidian-50 transition-all flex items-center justify-center" title="Editar">
+                                    <iconify-icon icon="solar:pen-new-square-bold-duotone" class="text-lg"></iconify-icon>
+                                </a>
+                                <form action="{% url 'shopping:list_delete' lista.uuid %}" method="post" class="inline" onsubmit="return confirm('Excluir este template permanentemente?');">
+                                    {% csrf_token %}
+                                    <button type="submit" class="w-9 h-9 rounded-xl bg-white border border-obsidian-200 text-obsidian-400 hover:text-red-500 hover:bg-red-50 transition-all flex items-center justify-center" title="Excluir">
+                                        <iconify-icon icon="solar:trash-bin-trash-bold-duotone" class="text-lg"></iconify-icon>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                    {% empty %}
+                    <div class="col-span-full py-16 text-center border-2 border-dashed border-obsidian-200 rounded-[32px] bg-white/40">
+                        <iconify-icon icon="solar:bookmark-square-minimalistic-bold" class="text-5xl text-obsidian-200 mb-4"></iconify-icon>
+                        <p class="font-display font-medium text-obsidian-400">Nenhum template cadastrado ainda.</p>
+                    </div>
+                    {% endfor %}
+                </div>
+            </section>
+
+            <!-- Seção: Catálogo de Produtos -->
+            <section class="reveal delay-200">
+                <div class="flex items-center justify-between mb-8 border-b border-obsidian-100 pb-4">
+                    <div class="flex items-center gap-3">
+                        <div class="w-10 h-10 rounded-xl bg-accent-sage/10 text-accent-sage flex items-center justify-center">
+                            <iconify-icon icon="solar:shop-2-bold-duotone" class="text-2xl"></iconify-icon>
+                        </div>
+                        <h3 class="font-display font-bold text-obsidian-900 text-xl tracking-tight">Catálogo Base de Produtos</h3>
+                    </div>
+                    <p class="text-[11px] font-mono uppercase tracking-widest text-obsidian-400">Total: <strong>{{ products.count }}</strong> Itens</p>
+                </div>
+
+                <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+                    {% for product in products %}
+                    <div class="bg-white rounded-3xl p-6 border border-obsidian-100 hover:border-obsidian-300 hover:shadow-[0_20px_40px_-12px_rgba(0,0,0,0.04)] transition-all group relative overflow-hidden">
+                        <!-- Icone de Categoria -->
+                        <div class="flex justify-between items-start mb-6">
+                            <div class="w-12 h-12 rounded-2xl bg-obsidian-50 flex items-center justify-center text-obsidian-400 group-hover:bg-obsidian-900 group-hover:text-white transition-all duration-500">
+                                <iconify-icon icon="{% if 'Papel' in product.category or 'Caderno' in product.category %}solar:notes-bold-duotone{% elif 'Caneta' in product.category or 'Lápis' in product.category %}solar:pen-bold-duotone{% else %}solar:box-bold-duotone{% endif %}" class="text-2xl"></iconify-icon>
+                            </div>
+                            <span class="text-[8px] font-bold uppercase tracking-widest text-obsidian-300 group-hover:text-obsidian-500 transition-colors bg-obsidian-50 px-2 py-0.5 rounded-full line-clamp-1 max-w-[80px]" title="{{ product.category }}">{{ product.category }}</span>
+                        </div>
+
+                        <div class="min-h-[3rem] mb-4">
+                            <h4 class="text-sm font-bold text-obsidian-900 leading-snug group-hover:text-accent-sage transition-colors line-clamp-2" title="{{ product.name }}">{{ product.name }}</h4>
+                        </div>
+
+                        <div class="flex items-center justify-between pt-4 border-t border-obsidian-50">
+                            <span class="text-base font-display font-black text-obsidian-950">R$ {{ product.price|floatformat:2 }}</span>
+                            <span class="text-[10px] font-mono text-obsidian-300">{% if product.barcode %}#{{ product.barcode|truncatechars:10 }}{% else %}BASE{% endif %}</span>
+                        </div>
+
+                        <!-- Hover Overlay Actions -->
+                        <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-white via-white to-transparent translate-y-full group-hover:translate-y-0 transition-transform duration-300 flex justify-center gap-2">
+                            <button class="w-9 h-9 rounded-xl bg-obsidian-900 text-white flex items-center justify-center shadow-lg hover:scale-110 transition-all">
+                                <iconify-icon icon="solar:pen-2-bold" class="text-lg"></iconify-icon>
                             </button>
                         </div>
-                        <h4 class="text-xl font-bold font-['Manrope'] mb-2"><a href="{% url 'shopping:list_detail' lista.uuid %}" class="hover:text-primary transition-colors">{{ lista.name }}</a></h4>
-                        <p class="text-sm text-on-surface-variant mb-6">{{ lista.school|default:"Escola não informada" }} {% if lista.grade %}- {{ lista.grade }}{% endif %}</p>
                     </div>
-                    
-                    <div class="flex items-center justify-between pt-4 border-t border-surface-container-low mt-4">
-                        <span class="text-xs font-semibold text-on-surface-variant flex items-center gap-1">
-                            <span class="material-symbols-outlined text-sm">inventory_2</span> {{ lista.items.count }} Itens cadastrados
-                        </span>
-                        
-                        <div class="flex gap-2">
-                            <a href="{% url 'shopping:list_edit' lista.uuid %}" class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface hover:bg-primary hover:text-white transition-all flex items-center justify-center" title="Editar Template">
-                                <span class="material-symbols-outlined text-sm">edit</span>
-                            </a>
-                            <form action="{% url 'shopping:list_delete' lista.uuid %}" method="post" class="inline" onsubmit="return confirm('Deseja realmente excluir este template? Esta ação é permanente.');">
-                                {% csrf_token %}
-                                <button type="submit" class="w-8 h-8 rounded-full bg-surface-container-high text-on-surface hover:bg-error hover:text-white transition-all flex items-center justify-center" title="Excluir Template">
-                                    <span class="material-symbols-outlined text-sm">delete</span>
-                                </button>
-                            </form>
-                        </div>
+                    {% empty %}
+                    <div class="col-span-full py-16 text-center border-2 border-dashed border-obsidian-200 rounded-[32px] bg-white/40">
+                        <iconify-icon icon="solar:ghost-bold" class="text-5xl text-obsidian-200 mb-4"></iconify-icon>
+                        <p class="font-display font-medium text-obsidian-400">O catálogo está vazio. Importe um arquivo CSV para começar.</p>
                     </div>
+                    {% endfor %}
                 </div>
-                {% empty %}
-                <div class="col-span-full border border-dashed border-slate-300 rounded-2xl p-8 text-center bg-slate-50 text-slate-500">
-                    <p class="font-medium">Nenhum template institucional criado até o momento.</p>
-                    <p class="text-xs mt-1">Crie uma lista na vitrine e marque "Este é um Template" para exibi-lo aqui.</p>
-                </div>
-                {% endfor %}
-            </div>
+            </section>
         </div>
+    </main>
+</div>
 
-        <!-- Section: Produtos -->
-        <div>
-            <div class="flex items-center justify-between mb-6 border-b border-surface-container-low pb-2">
-                <h3 class="text-xl font-bold font-['Manrope'] flex items-center gap-2 text-slate-800">
-                    <span class="material-symbols-outlined text-primary">inventory_2</span>
-                    Catálogo de Produtos (Base)
-                </h3>
-                <p class="text-sm text-on-surface-variant"><strong class="text-on-surface">{{ products.count }}</strong> itens cadastrados</p>
-            </div>
-            
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-                {% for product in products %}
-                <div class="group relative bg-surface-container-lowest rounded-xl p-4 shadow-sm border border-slate-200 hover:border-primary/30 transition-all">
-                    <div class="flex justify-between items-start mb-4">
-                        <div class="w-10 h-10 rounded-lg bg-surface-container-low flex items-center justify-center text-primary group-hover:bg-primary/10 transition-colors">
-                            <span class="material-symbols-outlined text-xl">
-                                {% if 'Papel' in product.category or 'Caderno' in product.category %}description{% elif 'Caneta' in product.category or 'Lápis' in product.category or 'Escrita' in product.category %}draw{% else %}category{% endif %}
-                            </span>
-                        </div>
-                        <span class="bg-secondary-container text-on-secondary-container px-2 py-0.5 rounded-full text-[9px] font-bold uppercase truncate max-w-[80px]" title="{{ product.category }}">{{ product.category }}</span>
-                    </div>
-                    <div class="mb-4 h-12">
-                        <h4 class="text-sm font-bold text-on-surface leading-tight hover:text-primary transition-colors line-clamp-2" title="{{ product.name }}">{{ product.name }}</h4>
-                    </div>
-                    <div class="flex items-center justify-between pt-3 border-t border-slate-100">
-                        <span class="text-sm font-extrabold text-on-surface">R$ {{ product.price|floatformat:2 }}</span>
-                        <span class="text-[10px] font-semibold text-slate-400" title="Código de Barras">{% if product.barcode %}#{{ product.barcode|truncatechars:10 }}{% else %}-{% endif %}</span>
-                    </div>
-                </div>
-                {% empty %}
-                <div class="col-span-full border border-dashed border-slate-300 rounded-2xl p-8 text-center bg-slate-50 text-slate-500">
-                    <p class="font-medium">O catálogo de produtos está vazio.</p>
-                </div>
-                {% endfor %}
-            </div>
-        </div>
-
-    </div>
-</main>
-
-<!-- Modal Overlay for Imports -->
-<div id="importModal" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm hidden">
-    <div class="bg-white w-full max-w-2xl mx-4 rounded-3xl shadow-[0_20px_60px_-15px_rgba(86,94,116,0.3)] overflow-hidden transform transition-all">
+<!-- Modal de Importação CSV (Sincronizado com Dashboard) -->
+<div id="importModal" class="fixed inset-0 z-[200] flex items-center justify-center bg-obsidian-950/40 backdrop-blur-md hidden opacity-0 transition-opacity duration-300">
+    <div class="modal-glass w-full max-w-2xl mx-4 rounded-[40px] overflow-hidden transform scale-95 transition-all duration-300">
         <form action="{% url 'shopping:import_products_csv' %}" method="post" enctype="multipart/form-data">
             {% csrf_token %}
-            <!-- Modal Header -->
-            <div class="px-8 py-6 border-b border-surface-container-low flex justify-between items-center">
-                <h3 class="text-xl font-bold font-['Manrope'] text-on-surface">Importar Catálogo/Lista (CSV)</h3>
-                <button type="button" onclick="toggleImportModal()" class="text-slate-500 hover:text-slate-900 transition-colors p-1 rounded-full hover:bg-slate-100">
-                    <span class="material-symbols-outlined">close</span>
+            
+            <div class="px-10 py-8 border-b border-obsidian-100 flex justify-between items-center bg-white/50">
+                <div>
+                    <h3 class="text-2xl font-display font-extrabold text-obsidian-950 tracking-tight">Importação em Lote</h3>
+                    <p class="text-xs text-obsidian-400 font-medium">Envie seu arquivo CSV de catálogo.</p>
+                </div>
+                <button type="button" onclick="toggleImportModal()" class="w-10 h-10 rounded-full bg-obsidian-100 text-obsidian-500 hover:bg-obsidian-200 transition-colors flex items-center justify-center rotate-45">
+                    <iconify-icon icon="solar:add-circle-linear" class="text-2xl"></iconify-icon>
                 </button>
             </div>
-            <!-- Modal Content -->
-            <div class="p-8">
-                <!-- Step 1: Identificação -->
-                <div class="mb-8">
-                    <div class="flex items-center gap-3 mb-4">
-                        <span class="w-6 h-6 rounded-full bg-slate-900 text-white text-[10px] flex items-center justify-center font-bold">1</span>
-                        <h4 class="font-bold text-slate-800 font-['Manrope']">Nome do Template (Opcional)</h4>
-                    </div>
-                    <div class="relative group">
-                        <input name="list_name" class="w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl focus:border-primary focus:bg-white focus:ring-0 transition-all font-inter text-on-surface" type="text" placeholder="Ex: Colégio Santa Clara - 6º Ano"/>
-                        <p class="text-xs text-slate-500 mt-2">Dê um nome para agrupar os itens importados em um Template Compartilhável. Se vazio, importarão apenas os produtos pro catálogo base.</p>
+            
+            <div class="p-10 space-y-8">
+                <div>
+                    <label class="mono-label mb-3 block">Nome do Template Opcional</label>
+                    <input name="list_name" type="text" placeholder="Ex: Lista Escolar 2024" class="obsidian-input">
+                </div>
+
+                <div class="p-6 rounded-3xl bg-accent-sky/5 border border-accent-sky/10 flex gap-4">
+                    <iconify-icon icon="solar:info-circle-bold-duotone" class="text-2xl text-accent-sky shrink-0"></iconify-icon>
+                    <div>
+                        <p class="text-[13px] font-bold text-obsidian-900 mb-2">Formato das Colunas:</p>
+                        <code class="text-[10px] text-accent-sky font-mono bg-white/50 px-2 py-1 rounded block mb-2 tracking-tighter">name,price,category,stock,barcode,image_url</code>
                     </div>
                 </div>
 
-                <!-- Step 2: Instruções e Formato -->
-                <div class="mb-8">
-                    <div class="flex items-center gap-3 mb-4">
-                        <span class="w-6 h-6 rounded-full bg-slate-900 text-white text-[10px] flex items-center justify-center font-bold">2</span>
-                        <h4 class="font-bold text-slate-800 font-['Manrope']">Instruções de Formato</h4>
-                    </div>
-                    <div class="bg-blue-50/70 border-l-4 border-blue-500 p-4 rounded-r-xl">
-                        <p class="text-sm text-blue-900">Seu arquivo deve ser um CSV (separado por vírgula) codificado em UTF-8 com as seguintes colunas obrigatórias no cabeçalho:</p>
-                        <code class="block bg-white/60 p-3 mt-3 rounded border border-blue-100 text-xs text-blue-900 font-mono tracking-tighter cursor-text select-all">name,price,category,stock,barcode,image_url</code>
-                        <p class="text-xs text-blue-700/80 mt-2 font-medium">As colunas barcode e image_url podem ficar vazias, mas elas precisam constar no cabeçalho.</p>
-                    </div>
-                </div>
-                <!-- Step 3: Upload -->
-                <div>
-                    <div class="flex items-center gap-3 mb-4">
-                        <span class="w-6 h-6 rounded-full bg-slate-900 text-white text-[10px] flex items-center justify-center font-bold">3</span>
-                        <h4 class="font-bold text-slate-800 font-['Manrope']">Importação de Arquivo</h4>
-                    </div>
-                    <label class="border-2 border-dashed border-slate-300 hover:border-primary/50 hover:bg-slate-50 rounded-2xl p-10 flex flex-col items-center justify-center text-center bg-white group transition-all cursor-pointer relative overflow-hidden">
-                        <input type="file" name="file" accept=".csv" required class="absolute inset-0 w-full h-full opacity-0 cursor-pointer" onchange="document.getElementById('filename-display').textContent = this.files[0] ? this.files[0].name : 'Nenhum arquivo selecionado'; document.getElementById('filename-display').parentElement.classList.add('bg-green-50', 'border-green-500')">
-                        <div class="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mb-4 group-hover:scale-110 group-hover:bg-primary/10 group-hover:text-primary transition-all text-slate-500">
-                            <span class="material-symbols-outlined text-3xl">upload_file</span>
-                        </div>
-                        <p id="filename-display" class="text-slate-800 font-semibold mb-1">Selecione seu arquivo CSV aqui</p>
-                        <p class="text-slate-500 text-sm mb-6">ou clique para navegar nos seus arquivos</p>
-                        <div class="flex gap-4">
-                            <span class="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded">MÁX 10MB</span>
-                            <span class="text-[10px] font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-1 rounded">APENAS .CSV</span>
-                        </div>
-                    </label>
-                </div>
+                <label class="group relative flex flex-col items-center justify-center p-12 border-2 border-dashed border-obsidian-200 rounded-[32px] bg-obsidian-50/50 hover:bg-white transition-all cursor-pointer">
+                    <input type="file" name="file" accept=".csv" required class="absolute inset-0 opacity-0 cursor-pointer" onchange="document.getElementById('filename-display').textContent = this.files[0] ? this.files[0].name : 'Nenhum arquivo'">
+                    <iconify-icon icon="solar:upload-bold-duotone" class="text-4xl text-obsidian-300 group-hover:scale-110 group-hover:text-obsidian-950 transition-all mb-4"></iconify-icon>
+                    <p id="filename-display" class="font-bold text-obsidian-900 mb-1">Selecione seu CSV</p>
+                </label>
             </div>
-            <!-- Modal Footer -->
-            <div class="px-8 py-5 bg-slate-50 border-t border-slate-200 flex justify-end items-center gap-3">
-                <button type="button" onclick="toggleImportModal()" class="text-slate-600 font-semibold px-5 py-2.5 hover:bg-slate-200/60 rounded-xl transition-colors text-sm">
-                    Cancelar
-                </button>
-                <button type="submit" class="bg-slate-900 text-white font-semibold px-6 py-2.5 rounded-xl hover:bg-black shadow-lg shadow-slate-900/20 active:scale-95 transition-all flex items-center gap-2 text-sm">
-                    <span>Processar Importação</span>
-                    <span class="material-symbols-outlined text-[18px]">cloud_upload</span>
+
+            <div class="px-10 py-6 bg-obsidian-50 border-t border-obsidian-100 flex justify-end gap-3">
+                <button type="button" onclick="toggleImportModal()" class="px-6 py-3 text-sm font-bold text-obsidian-400 hover:text-obsidian-900 transition-colors">Cancelar</button>
+                <button type="submit" class="beam-btn">
+                    <span class="beam-spinner"></span>
+                    <span class="beam-inner">Processar Catálogo</span>
                 </button>
             </div>
         </form>
     </div>
 </div>
 
-<!-- Snackbar for notifications (Share Link) -->
-<div id="snackbar" class="fixed bottom-6 left-1/2 -translate-x-1/2 bg-slate-900 text-white px-6 py-3 rounded-xl shadow-2xl transition-all duration-300 transform translate-y-20 opacity-0 z-50 text-sm font-medium flex items-center gap-2">
-    <span class="material-symbols-outlined text-[18px] text-green-400">check_circle</span>
-    <span id="snackbar-msg">Link copiado para área de transferência!</span>
+<!-- Snackbar Obsidian -->
+<div id="snackbar" class="fixed bottom-8 left-1/2 -translate-x-1/2 bg-obsidian-950 text-white px-8 py-4 rounded-3xl shadow-2xl transition-all duration-500 transform translate-y-32 opacity-0 z-[200] text-sm font-bold flex items-center gap-4">
+    <div class="w-8 h-8 rounded-full bg-accent-sage flex items-center justify-center text-obsidian-950">
+        <iconify-icon icon="solar:check-circle-bold" class="text-lg"></iconify-icon>
+    </div>
+    <span id="snackbar-msg">Link copiado com sucesso!</span>
 </div>
+{% endblock %}
 
+{% block extra_js %}
 <script>
     function toggleImportModal() {
         const modal = document.getElementById('importModal');
-        modal.classList.toggle('hidden');
-    }
-    window.onclick = function(event) {
-        const modal = document.getElementById('importModal');
-        if (event.target == modal) {
-            modal.classList.add('hidden');
+        const content = modal.querySelector('.modal-glass');
+        if (modal.classList.contains('hidden')) {
+            modal.classList.remove('hidden');
+            setTimeout(() => { modal.classList.remove('opacity-0'); content.classList.add('scale-100'); }, 10);
+        } else {
+            modal.classList.add('opacity-0'); content.classList.remove('scale-100');
+            setTimeout(() => { modal.classList.add('hidden'); }, 300);
         }
     }
+    
     function copyToClipboard(text) {
         navigator.clipboard.writeText(text).then(() => {
             const snackbar = document.getElementById('snackbar');
-            snackbar.classList.remove('translate-y-20', 'opacity-0');
-            setTimeout(() => {
-                snackbar.classList.add('translate-y-20', 'opacity-0');
-            }, 3000);
-        }).catch(err => {
-            console.error('Falha ao copiar:', err);
-            prompt("Copie este link:", text); // Fallback
+            snackbar.classList.remove('translate-y-32', 'opacity-0');
+            setTimeout(() => { snackbar.classList.add('translate-y-32', 'opacity-0'); }, 3000);
         });
     }
-</script>
 
-</body>
-</html>
+    window.onclick = function(event) {
+        const modal = document.getElementById('importModal');
+        if (event.target == modal) toggleImportModal();
+    }
+</script>
+{% endblock %}
